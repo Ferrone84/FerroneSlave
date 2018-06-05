@@ -10,6 +10,7 @@ using Discord.Commands;
 using HtmlAgilityPack;
 using Supremes;
 using System.Threading;
+using System.IO;
 
 namespace DiscordBot
 {
@@ -91,6 +92,8 @@ namespace DiscordBot
 		};
 
 		private DiscordSocketClient _client;
+		private CancellationTokenSource delay_controller;
+		private ulong master_id = 293780484822138881;
 
 		SortedDictionary<string, string> mangasData = new SortedDictionary<string, string>();
 		List<string> baned_people = new List<string>() { /*pseudo["Luc"], "Faellyss"*/ };
@@ -107,6 +110,7 @@ namespace DiscordBot
 
 			_client.Log += Log;
 			_client.MessageReceived += MessageReceived;
+			delay_controller = new CancellationTokenSource();
 
 			string token = getToken();
 			await _client.LoginAsync(TokenType.Bot, token);
@@ -120,15 +124,23 @@ namespace DiscordBot
 			thread.Start();
 
 			// Block this task until the program is closed.
-			await Task.Delay(-1);
+			try
+			{
+				await Task.Delay(-1, delay_controller.Token);
+			}
+			catch (TaskCanceledException e)
+			{
+				Console.WriteLine("Le bot a bien été coupé.");
+			}
+			_client.MessageReceived -= MessageReceived;
+			await _client.LogoutAsync();
+			await _client.StopAsync();
+			_client.Dispose();
 		}
 
 		private async Task MessageReceived(SocketMessage message)
 		{
-			//message.Author.Username == "Faellyss"
-			//message.Author.Mention
-
-			if (baned_people.Contains(message.Author.Username))
+			if (baned_people.Contains(message.Author.Username) || message.Author.IsBot)
 			{
 				return;
 			}
@@ -137,262 +149,263 @@ namespace DiscordBot
 			//Console.WriteLine("normal : "+message.Content);
 			//Console.WriteLine("lower  : "+message_lower);
 
-			if (!message.Author.IsBot)
+			if (message.Author.Id == master_id)
 			{
-				///////////////////////////////////////////////////////////////////
-				//							Les commandes
-				///////////////////////////////////////////////////////////////////
+				if (message.Content.Contains("/quit"))
+				{
+					delay_controller.Cancel();
+					return;
+				}
+			}
 
-				if (message_lower == "!ping")
+			///////////////////////////////////////////////////////////////////
+			//							Les commandes
+			///////////////////////////////////////////////////////////////////
+
+			if (message_lower == "!ping")
+			{
+				string msg = "Pong! Mon ping est de : " + _client.Latency.ToString() + "ms.";
+				await message.Channel.SendMessageAsync(msg);
+			}
+			if (message_lower.StartsWith("!date"))
+			{
+				string _t = "";
+				if (message_lower.Contains("day"))
 				{
-					string msg = "Pong! Mon ping est de : " + _client.Latency.ToString() + "ms.";
-					await message.Channel.SendMessageAsync(msg);
+					_t = DateTime.Now.Day.ToString();
 				}
-				if (message_lower.StartsWith("!date"))
+				else if (message_lower.Contains("month"))
 				{
-					string _t = "";
-					if (message_lower.Contains("day"))
-					{
-						_t = DateTime.Now.Day.ToString();
-					}
-					else if (message_lower.Contains("month"))
-					{
-						_t = DateTime.Now.Month.ToString();
-					}
-					else if (message_lower.Contains("year"))
-					{
-						_t = DateTime.Now.Year.ToString();
-					}
-					else if (message_lower.Contains("time"))
-					{
-						_t = DateTime.Now.TimeOfDay.ToString();
-						_t = _t.Remove(8, _t.Length - 8);
-					}
-					else
-						_t = DateTime.Now.ToString();
-					string msg = _t;
-					await message.Channel.SendMessageAsync(msg);
+					_t = DateTime.Now.Month.ToString();
 				}
-				if (SentenceContainsWord(message.ToString(), "rage") || message_lower == "!flip" || message_lower.Contains(unflip))
+				else if (message_lower.Contains("year"))
 				{
-					string msg = flip;
-					await message.Channel.SendMessageAsync(msg);
+					_t = DateTime.Now.Year.ToString();
 				}
-				if (message_lower == "!unflip" || message_lower.Contains(flip))
+				else if (message_lower.Contains("time"))
 				{
-					string msg = unflip;
-					await message.Channel.SendMessageAsync(msg);
+					_t = DateTime.Now.TimeOfDay.ToString();
+					_t = _t.Remove(8, _t.Length - 8);
 				}
-				if (message_lower == "!clean")
-				{
-					string msg = "Clean en cours...";
-					for (int i = 0; i < 60; i++)
-						msg += "\n";
-					msg += "\nClean terminé.";
+				else
+					_t = DateTime.Now.ToString();
+				string msg = _t;
+				await message.Channel.SendMessageAsync(msg);
+			}
+			if (SentenceContainsWord(message.ToString(), "rage") || message_lower == "!flip" || message_lower.Contains(unflip))
+			{
+				string msg = flip;
+				await message.Channel.SendMessageAsync(msg);
+			}
+			if (message_lower == "!unflip" || message_lower.Contains(flip))
+			{
+				string msg = unflip;
+				await message.Channel.SendMessageAsync(msg);
+			}
+			if (message_lower == "!clean")
+			{
+				string msg = "Clean en cours...";
+				for (int i = 0; i < 60; i++)
+					msg += "\n";
+				msg += "\nClean terminé.";
+				await message.Channel.SendMessageAsync(msg);
+			}
+			if (message_lower == "!mangas")
+			{
+				var msgs = displayMangasList().Split('|');
+				foreach (string msg in msgs)
 					await message.Channel.SendMessageAsync(msg);
-				}
-				if (message_lower == "!mangas")
+			}
+			if (message_lower == "!scans")
+			{
+				try
 				{
-					var msgs = displayMangasList().Split('|');
+					var msgs = displayCompleteMangasList().Split('|');
 					foreach (string msg in msgs)
 						await message.Channel.SendMessageAsync(msg);
 				}
-				if (message_lower == "!scans")
+				catch (Exception e)
 				{
-					try
-					{
-						var msgs = displayCompleteMangasList().Split('|');
-						foreach (string msg in msgs)
-							await message.Channel.SendMessageAsync(msg);
-					}
-					catch (Exception e)
-					{
-						displayException(e);
-					}
+					displayException(e, "!scans");
 				}
-				if (message_lower.StartsWith("!lastchapter"))
-				{
-					string msg = lastChapter(message_lower);
-					await message.Channel.SendMessageAsync(msg);
-				}
-				if (message_lower.StartsWith("!addmanga"))
-				{
-					string msg = addManga(message_lower);
-					await message.Channel.SendMessageAsync(msg);
-				}
-				if (message_lower == "!help")
-				{
-					string msg = displayAllActions();
-					await message.Channel.SendMessageAsync(msg);
-				}
-				/*if (message_lower == "!tags")
-				{
-					string msg = displayAllTags();
-					await message.Channel.SendMessageAsync(msg);
-				}*/
-
-
-				///////////////////////////////////////////////////////////////////
-				//							Les deletes
-				///////////////////////////////////////////////////////////////////
-
-				if (message_lower.StartsWith("$fs"))
-				{
-					DeleteMessage(message);
-					string msg = message_lower.Substring(3).ToLower();
-					if (message.Author.Username == pseudo["Luc"])
-						msg = FormateSentence(msg) + " by FlutterShy / Blossom / Pupute";
-					else
-						msg = FormateSentence(msg) + " by " + message.Author.Username;
-					await message.Channel.SendMessageAsync(msg);
-				}
-				if (message_lower == "$lenny")
-				{
-					DeleteMessage(message);
-					string msg = "( ͡° ͜ʖ ͡°)";
-					await message.Channel.SendMessageAsync(msg);
-				}
-				if (message_lower == "$popopo")
-				{
-					DeleteMessage(message);
-					string msg = "https://cdn.discordapp.com/attachments/346760327540506643/353847873458274304/popopo.png";
-					await message.Channel.SendMessageAsync(msg);
-				}
-				if (message_lower == "$ken")
-				{
-					DeleteMessage(message);
-					string msg = "OMAE WA MOU ... SHINDEIRU !";
-					await message.Channel.SendMessageAsync(msg);
-				}
-				if (message_lower == "$amaury meme")
-				{
-					DeleteMessage(message);
-					string msg = "https://cdn.discordapp.com/attachments/309407896070782976/353833262273134592/Sans_titre.png";
-					await message.Channel.SendMessageAsync(msg);
-				}
-				if (message_lower == "$mytho ultime")
-				{
-					DeleteMessage(message);
-					string msg = "https://cdn.discordapp.com/attachments/346760327540506643/402253939573129217/amaury_ultime.jpg";
-					await message.Channel.SendMessageAsync(msg);
-				}
-				if (message_lower.StartsWith("$los"))
-				{
-					DeleteMessage(message);
-					string msg = "LOS ? " + mention["Bringer"] + " " + mention["Renaud"] + " " + mention["Dimitri"] + " " + mention["Bruno"] + " " + mention["Pierre"] + " " + mention["Mayeul"] + " " + mention["Ferrone"];
-					if (message.Author.Username == pseudo["Luc"])
-						msg = "Luc qui casse les couilles a vouloir trigger le LOS !";
-					else
-						msg += " - " + message.Author.Username + " veut jouer !";
-
-					if (message_lower != "$los")
-					{
-						msg += " [" + message_lower.Substring(5) + "]";
-					}
-					await message.Channel.SendMessageAsync(msg);
-				}
-
-
-				///////////////////////////////////////////////////////////////////
-				//							  Autres
-				///////////////////////////////////////////////////////////////////
-
-				if (message_lower.Contains("fap"))
-				{
-					string msg = "https://giphy.com/gifs/fap-Bk2NzCbwFH6sE";
-					await message.Channel.SendMessageAsync(msg);
-				}
-				if (message_lower.Contains("bite"))
-				{
-					int it = CountIterations(message.ToString().ToLower(), "bite");
-					string pepe = "<:pepe:329281047730585601> ";
-					string msg = "";
-					for (int i = 0; i < it; i++)
-						msg += pepe;
-					await message.Channel.SendMessageAsync(msg);
-				}
-				if (message_lower.Contains("musique de génie"))
-				{
-					string msg = "https://www.youtube.com/watch?v=kXYiU_JCYtU&index=146&list=PLi7ipd_Aw87Xv1s_L8p1NZ6cg9Ny0dQEi&ab_channel=LinkinPark";
-					await message.Channel.SendMessageAsync(msg);
-				}
-				if (message.Content.Contains("Gamabunta"))
-				{
-					string msg = "Kuchiyose no jutsu ! https://vignette3.wikia.nocookie.net/naruto/images/8/84/Gamabunta.png/revision/latest?cb=20160623114719";
-					await message.Channel.SendMessageAsync(msg);
-				}
-				if (message_lower.Contains("invocation"))
-				{
-					string msg = "Kuchiyose no jutsu !";
-					await message.Channel.SendMessageAsync(msg);
-				}
-				if (message_lower.Contains("welcome"))
-				{
-					string msg = "https://www.youtube.com/watch?v=o0kGvgXmmgk&ab_channel=DiegoSousa";
-					await message.Channel.SendMessageAsync(msg);
-				}
-				if (message_lower.Contains("évidemment") || message_lower.Contains("evidemment"))
-				{
-					string msg = "https://www.youtube.com/watch?v=A4-MlnvXo2I&ab_channel=FansDesRoisD%27Internet";
-					await message.Channel.SendMessageAsync(msg);
-				}
-				if (message_lower.Contains("je vais chier") || message_lower.Contains("jvais chier") || message_lower.Contains("va chier"))
-				{
-					string msg = "http://ci.memecdn.com/2675825.jpg";
-					await message.Channel.SendMessageAsync(msg);
-				}
-				if (message_lower.Contains("omae"))
-				{
-					string msg = "NANIIII !!??";
-					await message.Channel.SendMessageAsync(msg);
-				}
-				if (message_lower.Contains("sancho"))
-				{
-					string msg = "https://cdn.discordapp.com/attachments/346760327540506643/397856433145905156/yahazu_giri.png";
-					await message.Channel.SendMessageAsync(msg);
-				}
-				if (message_lower.Contains("detroit") || message_lower.Contains("smash"))
-				{
-					string msg = "https://giphy.com/gifs/hero-smash-boku-XE8j547LpglrO";
-					await message.Channel.SendMessageAsync(msg);
-				}
-
-
-				///////////////////////////////////////////////////////////////////
-				//							  Automatique
-				///////////////////////////////////////////////////////////////////
-
-				if (message_lower.Contains("#") && message.Author.Username != "Ferrone")
-				{
-					string msg = "Les hashtags c'est démodé quand même :/ depuis 2012 connard.";
-					await message.Channel.SendMessageAsync(msg);
-				}
-				if ((message_lower.Contains("bald") && message_lower.Contains("signal")) || message_lower.Contains("baldsignal"))
-				{
-					string msg = mention["Ferrone"];
-					await message.Channel.SendMessageAsync(msg);
-				}
-
-				///////////////////////////////////////////////////////////////////
-				//							En construction
-				///////////////////////////////////////////////////////////////////
-				/*if (message.Channel.ToString().Contains("@") && message.Channel.ToString().Contains("#"))
-				{
-					//await message.Channel.SendMessageAsync("arrête de m'embetter");
-					//await message.Channel.SendMessageAsync(FormateSentence("salut ca va"));
-				}*/
-
-
-				//debug zone
-				if (message_lower == "!d")
-				{
-					string msg = "";
-					sendMessageTo(channels["debug"], msg);
-					Console.WriteLine(msg);
-				}
-
-				Console.WriteLine("Message reçu de " + message.Author.Username + " : " + message_lower);
 			}
+			if (message_lower.StartsWith("!lastchapter"))
+			{
+				string msg = lastChapter(message_lower);
+				await message.Channel.SendMessageAsync(msg);
+			}
+			if (message_lower.StartsWith("!addmanga"))
+			{
+				string msg = addManga(message_lower);
+				await message.Channel.SendMessageAsync(msg);
+			}
+			if (message_lower == "!help")
+			{
+				string msg = displayAllActions();
+				await message.Channel.SendMessageAsync(msg);
+			}
+
+
+			///////////////////////////////////////////////////////////////////
+			//							Les deletes
+			///////////////////////////////////////////////////////////////////
+
+			if (message_lower.StartsWith("$fs"))
+			{
+				DeleteMessage(message);
+				string msg = message_lower.Substring(3).ToLower();
+				if (message.Author.Username == pseudo["Luc"])
+					msg = FormateSentence(msg) + " by FlutterShy / Blossom / Pupute";
+				else
+					msg = FormateSentence(msg) + " by " + message.Author.Username;
+				await message.Channel.SendMessageAsync(msg);
+			}
+			if (message_lower == "$lenny")
+			{
+				DeleteMessage(message);
+				string msg = "( ͡° ͜ʖ ͡°)";
+				await message.Channel.SendMessageAsync(msg);
+			}
+			if (message_lower == "$popopo")
+			{
+				DeleteMessage(message);
+				string msg = "https://cdn.discordapp.com/attachments/346760327540506643/353847873458274304/popopo.png";
+				await message.Channel.SendMessageAsync(msg);
+			}
+			if (message_lower == "$ken")
+			{
+				DeleteMessage(message);
+				string msg = "OMAE WA MOU ... SHINDEIRU !";
+				await message.Channel.SendMessageAsync(msg);
+			}
+			if (message_lower == "$amaury meme")
+			{
+				DeleteMessage(message);
+				string msg = "https://cdn.discordapp.com/attachments/309407896070782976/353833262273134592/Sans_titre.png";
+				await message.Channel.SendMessageAsync(msg);
+			}
+			if (message_lower == "$mytho ultime")
+			{
+				DeleteMessage(message);
+				string msg = "https://cdn.discordapp.com/attachments/346760327540506643/402253939573129217/amaury_ultime.jpg";
+				await message.Channel.SendMessageAsync(msg);
+			}
+			if (message_lower.StartsWith("$los"))
+			{
+				DeleteMessage(message);
+				string msg = "LOS ? " + mention["Bringer"] + " " + mention["Renaud"] + " " + mention["Dimitri"] + " " + mention["Bruno"] + " " + mention["Pierre"] + " " + mention["Mayeul"] + " " + mention["Ferrone"];
+				if (message.Author.Username == pseudo["Luc"])
+					msg = "Luc qui casse les couilles a vouloir trigger le LOS !";
+				else
+					msg += " - " + message.Author.Username + " veut jouer !";
+
+				if (message_lower != "$los")
+				{
+					msg += " [" + message_lower.Substring(5) + "]";
+				}
+				await message.Channel.SendMessageAsync(msg);
+			}
+
+
+			///////////////////////////////////////////////////////////////////
+			//							  Autres
+			///////////////////////////////////////////////////////////////////
+
+			if (message_lower.Contains("fap"))
+			{
+				string msg = "https://giphy.com/gifs/fap-Bk2NzCbwFH6sE";
+				await message.Channel.SendMessageAsync(msg);
+			}
+			if (message_lower.Contains("bite"))
+			{
+				int it = CountIterations(message.ToString().ToLower(), "bite");
+				string pepe = "<:pepe:329281047730585601> ";
+				string msg = "";
+				for (int i = 0; i < it; i++)
+					msg += pepe;
+				await message.Channel.SendMessageAsync(msg);
+			}
+			if (message_lower.Contains("musique de génie"))
+			{
+				string msg = "https://www.youtube.com/watch?v=kXYiU_JCYtU&index=146&list=PLi7ipd_Aw87Xv1s_L8p1NZ6cg9Ny0dQEi&ab_channel=LinkinPark";
+				await message.Channel.SendMessageAsync(msg);
+			}
+			if (message.Content.Contains("Gamabunta"))
+			{
+				string msg = "Kuchiyose no jutsu ! https://vignette3.wikia.nocookie.net/naruto/images/8/84/Gamabunta.png/revision/latest?cb=20160623114719";
+				await message.Channel.SendMessageAsync(msg);
+			}
+			if (message_lower.Contains("invocation"))
+			{
+				string msg = "Kuchiyose no jutsu !";
+				await message.Channel.SendMessageAsync(msg);
+			}
+			if (message_lower.Contains("welcome"))
+			{
+				string msg = "https://www.youtube.com/watch?v=o0kGvgXmmgk&ab_channel=DiegoSousa";
+				await message.Channel.SendMessageAsync(msg);
+			}
+			if (message_lower.Contains("évidemment") || message_lower.Contains("evidemment"))
+			{
+				string msg = "https://www.youtube.com/watch?v=A4-MlnvXo2I&ab_channel=FansDesRoisD%27Internet";
+				await message.Channel.SendMessageAsync(msg);
+			}
+			if (message_lower.Contains("je vais chier") || message_lower.Contains("jvais chier") || message_lower.Contains("va chier"))
+			{
+				string msg = "http://ci.memecdn.com/2675825.jpg";
+				await message.Channel.SendMessageAsync(msg);
+			}
+			if (message_lower.Contains("omae"))
+			{
+				string msg = "NANIIII !!??";
+				await message.Channel.SendMessageAsync(msg);
+			}
+			if (message_lower.Contains("sancho"))
+			{
+				string msg = "https://cdn.discordapp.com/attachments/346760327540506643/397856433145905156/yahazu_giri.png";
+				await message.Channel.SendMessageAsync(msg);
+			}
+			if (message_lower.Contains("detroit") || message_lower.Contains("smash"))
+			{
+				string msg = "https://giphy.com/gifs/hero-smash-boku-XE8j547LpglrO";
+				await message.Channel.SendMessageAsync(msg);
+			}
+
+
+			///////////////////////////////////////////////////////////////////
+			//							  Automatique
+			///////////////////////////////////////////////////////////////////
+
+			if (message_lower.Contains("#") && message.Author.Username != "Ferrone")
+			{
+				string msg = "Les hashtags c'est démodé quand même :/ depuis 2012 connard.";
+				await message.Channel.SendMessageAsync(msg);
+			}
+			if ((message_lower.Contains("bald") && message_lower.Contains("signal")) || message_lower.Contains("baldsignal"))
+			{
+				string msg = mention["Ferrone"];
+				await message.Channel.SendMessageAsync(msg);
+			}
+
+			///////////////////////////////////////////////////////////////////
+			//							En construction
+			///////////////////////////////////////////////////////////////////
+			/*if (message.Channel.ToString().Contains("@") && message.Channel.ToString().Contains("#"))
+			{
+				//await message.Channel.SendMessageAsync("arrête de m'embetter");
+				//await message.Channel.SendMessageAsync(FormateSentence("salut ca va"));
+			}*/
+
+
+			//debug zone
+			if (message_lower == "!d")
+			{
+				string msg = "";
+				sendMessageTo(channels["debug"], msg);
+				Console.WriteLine(msg);
+			}
+
+			Console.WriteLine("Message reçu de " + message.Author.Username + " : " + message_lower);
 		}
 
 		private void sendMessageTo(ulong channel, string message)
@@ -403,8 +416,7 @@ namespace DiscordBot
 			}
 			catch (Exception e)
 			{
-				Console.WriteLine("impossible to send message : " + e.Message);
-				Console.WriteLine(e.StackTrace);
+				displayException(e, "Impossible to send message, sendMessageTo(ulong channel, string message)");
 			}
 		}
 
@@ -488,7 +500,7 @@ namespace DiscordBot
 				}
 				catch (Exception e)
 				{
-					Console.WriteLine(e.Message);
+					displayException(e, "Exception on getAllNewChapters()");
 				}
 			}
 			var now = DateTime.Now - time;
@@ -525,7 +537,7 @@ namespace DiscordBot
 			{
 				version = divChaptersList.Select("ul").Select("li").Select("span")[0].Text;
 			}
-			catch (ArgumentOutOfRangeException) { }
+			catch (ArgumentOutOfRangeException) { /*displayException(e, "ArgumentOutOfRangeException, getLastChapterOf(string manga)");*/ }
 
 			if (version == "(RAW)")
 				version = "(JAP)";
@@ -550,8 +562,7 @@ namespace DiscordBot
 			}
 			catch (Exception e)
 			{
-				Console.WriteLine("Exception on setupMangasData() : \n" + e.Message);
-				Console.WriteLine(e.StackTrace);
+				displayException(e, "Exception on setupMangasData()");
 			}
 		}
 
@@ -618,7 +629,7 @@ namespace DiscordBot
 			}
 			catch (Exception e)
 			{
-				Console.WriteLine("DeleteException : " + e.Message);
+				displayException(e, "DeleteException on DeleteMessage(SocketMessage message)");
 			}
 		}
 
@@ -684,9 +695,9 @@ namespace DiscordBot
 
 
 
-		private void displayException(Exception e)
+		private void displayException(Exception e, string message = "Error")
 		{
-			Console.WriteLine("Error : " + e.Message);
+			Console.WriteLine(message + " : \n" + e.Message + "\n");
 			Console.WriteLine(e.StackTrace);
 		}
 
@@ -694,6 +705,28 @@ namespace DiscordBot
 		{
 			string[] lines = System.IO.File.ReadAllLines(TOKEN_FILE_NAME);
 			return lines[0];
+		}
+	}
+
+
+
+	class BotStateManager
+	{
+		public static void Save<T>(string filename, T obj)
+		{
+			using (Stream stream = File.Open(filename, FileMode.Create))
+			{
+				var binary_serializer = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
+				binary_serializer.Serialize(stream, obj);
+			}
+		}
+		public static T Load<T>(string filename)
+		{
+			using (Stream stream = File.Open(filename, FileMode.Open))
+			{
+				var binary_serializer = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
+				return (T)binary_serializer.Deserialize(stream);
+			}
 		}
 	}
 }
