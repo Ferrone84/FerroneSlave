@@ -18,7 +18,8 @@ namespace DiscordBot
 	{
 		const string TOKEN_FILE_NAME = @"resources/token.txt";
 		const string MANGASDATA_FILE_NAME = @"resources/data.txt";
-		const string MANGASATTENTE_FILE_NAME = @"resources/mangas_en_attentes.txt";
+		const string LOGS_FILE_NAME = @"resources/logs.txt";
+		//const string MANGASATTENTE_FILE_NAME = @"resources/mangas_en_attentes.txt";
 
 		Dictionary<string, ulong> channels = new Dictionary<string, ulong>()
 		{
@@ -128,7 +129,7 @@ namespace DiscordBot
 			{
 				await Task.Delay(-1, delay_controller.Token);
 			}
-			catch (TaskCanceledException e)
+			catch (TaskCanceledException)
 			{
 				Console.WriteLine("Le bot a bien été coupé.");
 			}
@@ -167,7 +168,7 @@ namespace DiscordBot
 				string msg = "Pong! Mon ping est de : " + _client.Latency.ToString() + "ms.";
 				await message.Channel.SendMessageAsync(msg);
 			}
-			if (message_lower.StartsWith("!date"))
+			else if (message_lower.StartsWith("!date"))
 			{
 				string _t = "";
 				if (message_lower.Contains("day"))
@@ -192,17 +193,17 @@ namespace DiscordBot
 				string msg = _t;
 				await message.Channel.SendMessageAsync(msg);
 			}
-			if (SentenceContainsWord(message.ToString(), "rage") || message_lower == "!flip" || message_lower.Contains(unflip))
+			else if (SentenceContainsWord(message.ToString(), "rage") || message_lower == "!flip" || message_lower.Contains(unflip))
 			{
 				string msg = flip;
 				await message.Channel.SendMessageAsync(msg);
 			}
-			if (message_lower == "!unflip" || message_lower.Contains(flip))
+			else if (message_lower == "!unflip" || message_lower.Contains(flip))
 			{
 				string msg = unflip;
 				await message.Channel.SendMessageAsync(msg);
 			}
-			if (message_lower == "!clean")
+			else if (message_lower == "!clean")
 			{
 				string msg = "Clean en cours...";
 				for (int i = 0; i < 60; i++)
@@ -210,13 +211,13 @@ namespace DiscordBot
 				msg += "\nClean terminé.";
 				await message.Channel.SendMessageAsync(msg);
 			}
-			if (message_lower == "!mangas")
+			else if (message_lower == "!mangas")
 			{
 				var msgs = displayMangasList().Split('|');
 				foreach (string msg in msgs)
 					await message.Channel.SendMessageAsync(msg);
 			}
-			if (message_lower == "!scans")
+			else if (message_lower == "!scans")
 			{
 				try
 				{
@@ -229,17 +230,17 @@ namespace DiscordBot
 					displayException(e, "!scans");
 				}
 			}
-			if (message_lower.StartsWith("!lastchapter"))
+			else if (message_lower.StartsWith("!lastchapter"))
 			{
 				string msg = lastChapter(message_lower);
 				await message.Channel.SendMessageAsync(msg);
 			}
-			if (message_lower.StartsWith("!addmanga"))
+			else if (message_lower.StartsWith("!addmanga"))
 			{
 				string msg = addManga(message_lower);
 				await message.Channel.SendMessageAsync(msg);
 			}
-			if (message_lower == "!help")
+			else if (message_lower == "!help")
 			{
 				string msg = displayAllActions();
 				await message.Channel.SendMessageAsync(msg);
@@ -260,37 +261,37 @@ namespace DiscordBot
 					msg = FormateSentence(msg) + " by " + message.Author.Username;
 				await message.Channel.SendMessageAsync(msg);
 			}
-			if (message_lower == "$lenny")
+			else if (message_lower == "$lenny")
 			{
 				DeleteMessage(message);
 				string msg = "( ͡° ͜ʖ ͡°)";
 				await message.Channel.SendMessageAsync(msg);
 			}
-			if (message_lower == "$popopo")
+			else if (message_lower == "$popopo")
 			{
 				DeleteMessage(message);
 				string msg = "https://cdn.discordapp.com/attachments/346760327540506643/353847873458274304/popopo.png";
 				await message.Channel.SendMessageAsync(msg);
 			}
-			if (message_lower == "$ken")
+			else if (message_lower == "$ken")
 			{
 				DeleteMessage(message);
 				string msg = "OMAE WA MOU ... SHINDEIRU !";
 				await message.Channel.SendMessageAsync(msg);
 			}
-			if (message_lower == "$amaury meme")
+			else if (message_lower == "$amaury meme")
 			{
 				DeleteMessage(message);
 				string msg = "https://cdn.discordapp.com/attachments/309407896070782976/353833262273134592/Sans_titre.png";
 				await message.Channel.SendMessageAsync(msg);
 			}
-			if (message_lower == "$mytho ultime")
+			else if (message_lower == "$mytho ultime")
 			{
 				DeleteMessage(message);
 				string msg = "https://cdn.discordapp.com/attachments/346760327540506643/402253939573129217/amaury_ultime.jpg";
 				await message.Channel.SendMessageAsync(msg);
 			}
-			if (message_lower.StartsWith("$los"))
+			else if (message_lower.StartsWith("$los"))
 			{
 				DeleteMessage(message);
 				string msg = "LOS ? " + mention["Bringer"] + " " + mention["Renaud"] + " " + mention["Dimitri"] + " " + mention["Bruno"] + " " + mention["Pierre"] + " " + mention["Mayeul"] + " " + mention["Ferrone"];
@@ -405,7 +406,9 @@ namespace DiscordBot
 				Console.WriteLine(msg);
 			}
 
-			Console.WriteLine("Message reçu de " + message.Author.Username + " : " + message_lower);
+			string logprint = "Message reçu de " + message.Author.Username + " : " + message_lower;
+			Console.WriteLine(logprint);
+			System.IO.File.AppendAllText(LOGS_FILE_NAME, logprint+"\n");
 		}
 
 		private void sendMessageTo(ulong channel, string message)
@@ -506,7 +509,8 @@ namespace DiscordBot
 			var now = DateTime.Now - time;
 			Console.WriteLine("search done. (" + DateTime.Now + ") [" + now + "]");
 
-			Thread.Sleep(10800000);
+			//Thread.Sleep(10800000);	//3h
+			Thread.Sleep(1800000);		//30min
 			getAllNewChapters();
 		}
 
