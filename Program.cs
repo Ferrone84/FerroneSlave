@@ -124,6 +124,11 @@ namespace DiscordBot
 			Thread thread = new Thread(getAllNewChapters);
 			thread.Start();
 
+			Console.CancelKeyPress += async delegate (object sender, ConsoleCancelEventArgs e) {
+				e.Cancel = true;
+				await deconnection();
+			};
+
 			// Block this task until the program is closed.
 			try
 			{
@@ -131,12 +136,25 @@ namespace DiscordBot
 			}
 			catch (TaskCanceledException)
 			{
-				Console.WriteLine("Le bot a bien été coupé.");
+				await deconnection();
 			}
-			_client.MessageReceived -= MessageReceived;
-			await _client.LogoutAsync();
-			await _client.StopAsync();
-			_client.Dispose();
+		}
+
+		private async Task deconnection()
+		{
+			try
+			{
+				Console.WriteLine("Le bot a bien été coupé.");
+				_client.MessageReceived -= MessageReceived;
+				await _client.LogoutAsync();
+				await _client.StopAsync();
+				_client.Dispose();
+				Environment.Exit(0);
+			}
+			catch (Exception e)
+			{
+				displayException(e, "deconnection");
+			}
 		}
 
 		private async Task MessageReceived(SocketMessage message)
@@ -152,7 +170,7 @@ namespace DiscordBot
 
 			if (message.Author.Id == master_id)
 			{
-				if (message.Content.Contains("/quit"))
+				if (message_lower == "/q")
 				{
 					delay_controller.Cancel();
 					return;
@@ -306,6 +324,12 @@ namespace DiscordBot
 				}
 				await message.Channel.SendMessageAsync(msg);
 			}
+			else if (message_lower == "$boulot")
+			{
+				DeleteMessage(message);
+				string msg = traffic();
+				await message.Channel.SendMessageAsync(msg);
+			}
 
 
 			///////////////////////////////////////////////////////////////////
@@ -377,11 +401,11 @@ namespace DiscordBot
 			//							  Automatique
 			///////////////////////////////////////////////////////////////////
 
-			if (message_lower.Contains("#") && message.Author.Username != "Ferrone")
+			/*if (message_lower.Contains("#") && message.Author.Username != "Ferrone")
 			{
 				string msg = "Les hashtags c'est démodé quand même :/ depuis 2012 connard.";
 				await message.Channel.SendMessageAsync(msg);
-			}
+			}*/
 			if ((message_lower.Contains("bald") && message_lower.Contains("signal")) || message_lower.Contains("baldsignal"))
 			{
 				string msg = mention["Ferrone"];
@@ -405,7 +429,7 @@ namespace DiscordBot
 				sendMessageTo(channels["debug"], msg);
 				Console.WriteLine(msg);
 			}
-
+			
 			string logprint = "Message reçu de " + message.Author.Username + " : " + message_lower;
 			Console.WriteLine(logprint);
 			System.IO.File.AppendAllText(LOGS_FILE_NAME, logprint+"\n");
@@ -421,6 +445,26 @@ namespace DiscordBot
 			{
 				displayException(e, "Impossible to send message, sendMessageTo(ulong channel, string message)");
 			}
+		}
+
+		private string traffic()
+		{
+			string result = "";
+			Console.WriteLine("rentre");
+
+			string url = "https://www.google.fr/maps/dir/Centre+d%27Enseignement+et+de+Recherche+en+Informatique,+Chemin+des+Meinajaries,+Avignon/Robion/@43.8790888,4.9636994,13.63z/data=!4m14!4m13!1m5!1m1!1s0x12b5ee01563deb2b:0xda8a6c05e203a0bb!2m2!1d4.8888449!2d43.9091361!1m5!1m1!1s0x12ca08893846e7ef:0x40819a5fd8fc0f0!2m2!1d5.112227!2d43.845099!3e0";
+
+			Console.WriteLine("url");
+			var document = Dcsoup.Parse(new Uri(url), 30000);
+			Console.WriteLine("get");
+			var pathList = document.Select("body");
+			Console.WriteLine("path "+pathList);
+			var firstPath = pathList.Select("div");
+			Console.WriteLine(firstPath);
+			var time = firstPath.Select("div").Select("div").Select("div").Select("div").Select("span")[0];
+			Console.WriteLine(time);
+
+			return result;
 		}
 
 		private string lastChapter(string message_lower)
@@ -496,7 +540,8 @@ namespace DiscordBot
 						System.IO.File.WriteAllText(MANGASDATA_FILE_NAME, toWrite);
 
 						string msg = "Nouveau scan trouvé pour " + kvp.Key + " : \n\t" + chapter;
-						sendMessageTo(channels["mangas"], msg);
+						if (!chapter.Contains("VUS") && !chapter.Contains("JAP") && !chapter.Contains("SPOILER") && !chapter.Contains("RAW"))
+							sendMessageTo(channels["mangas"], msg);
 
 						setupMangasData();
 					}
