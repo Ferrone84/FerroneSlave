@@ -11,6 +11,8 @@ using HtmlAgilityPack;
 using Supremes;
 using System.Threading;
 using System.IO;
+using System.Net;
+using Newtonsoft.Json.Linq;
 
 namespace DiscordBot
 {
@@ -18,6 +20,7 @@ namespace DiscordBot
 	{
 		const string TOKEN_FILE_NAME = @"resources/token.txt";
 		const string MANGASDATA_FILE_NAME = @"resources/data.txt";
+		const string TRAJETS_FILE_NAME = @"resources/trajets.txt";
 		const string LOGS_FILE_NAME = @"resources/logs.txt";
 		//const string MANGASATTENTE_FILE_NAME = @"resources/mangas_en_attentes.txt";
 
@@ -123,6 +126,10 @@ namespace DiscordBot
 			//Thread qui regarde les nouveaux scans
 			Thread thread = new Thread(getAllNewChapters);
 			thread.Start();
+
+			//Thread qui regarde le temps de trajets
+			Thread traffic_thread = new Thread(fillTrafficData);
+			traffic_thread.Start();
 
 			Console.CancelKeyPress += async delegate (object sender, ConsoleCancelEventArgs e) {
 				e.Cancel = true;
@@ -447,22 +454,44 @@ namespace DiscordBot
 			}
 		}
 
+		private void fillTrafficData() {
+			var time = DateTime.Now;
+			Console.WriteLine("fillTrafficData (" + time + ")");
+
+			string duration = traffic();
+			string day = time.DayOfWeek.ToString();
+			string hour = time.Hour.ToString() + "h" + time.Minute.ToString();
+			string result = day + ":" + hour + "=" + duration + "\n";
+
+			if (Int32.Parse(time.Hour.ToString()) > 8 && Int32.Parse(time.Hour.ToString()) < 21)
+				System.IO.File.AppendAllText(TRAJETS_FILE_NAME, result);
+
+			var now = DateTime.Now - time;
+			Console.WriteLine("fill traffic data done. (" + DateTime.Now + ") [" + now + "]");
+
+			Thread.Sleep(1800000);		//30min
+			fillTrafficData();
+		}
+
 		private string traffic()
 		{
 			string result = "";
-			Console.WriteLine("rentre");
+			string url = "https://maps.googleapis.com/maps/api/directions/json?origin=Centre+d'Enseignement+et+de+Recherche+en+Informatique&destination=Robion&key="+getApiKey();
 
-			string url = "https://www.google.fr/maps/dir/Centre+d%27Enseignement+et+de+Recherche+en+Informatique,+Chemin+des+Meinajaries,+Avignon/Robion/@43.8790888,4.9636994,13.63z/data=!4m14!4m13!1m5!1m1!1s0x12b5ee01563deb2b:0xda8a6c05e203a0bb!2m2!1d4.8888449!2d43.9091361!1m5!1m1!1s0x12ca08893846e7ef:0x40819a5fd8fc0f0!2m2!1d5.112227!2d43.845099!3e0";
+			WebRequest request = WebRequest.Create(url);
+			WebResponse response = request.GetResponse();
+			Stream data = response.GetResponseStream();
+			StreamReader reader = new StreamReader(data);
 
-			Console.WriteLine("url");
-			var document = Dcsoup.Parse(new Uri(url), 30000);
-			Console.WriteLine("get");
-			var pathList = document.Select("body");
-			Console.WriteLine("path "+pathList);
-			var firstPath = pathList.Select("div");
-			Console.WriteLine(firstPath);
-			var time = firstPath.Select("div").Select("div").Select("div").Select("div").Select("span")[0];
-			Console.WriteLine(time);
+			// json-formatted string from maps api
+			string responseFromServer = reader.ReadToEnd();
+			//Console.WriteLine(responseFromServer);
+			dynamic details = JObject.Parse(responseFromServer);
+			Console.WriteLine(details.routes[0].legs[0].duration.text);
+			var duration = details.routes[0].legs[0].duration.text;
+			result = (string)duration;
+
+			response.Close();
 
 			return result;
 		}
@@ -754,6 +783,12 @@ namespace DiscordBot
 		{
 			string[] lines = System.IO.File.ReadAllLines(TOKEN_FILE_NAME);
 			return lines[0];
+		}
+
+		private string getApiKey()
+		{
+			string[] lines = System.IO.File.ReadAllLines(TOKEN_FILE_NAME);
+			return lines[1];
 		}
 	}
 
