@@ -22,6 +22,7 @@ namespace DiscordBot
 		const string MANGASDATA_FILE_NAME = @"resources/data.txt";
 		const string TRAJETS_FILE_NAME = @"resources/trajets.txt";
 		const string LOGS_FILE_NAME = @"resources/logs.txt";
+		const string PP_FILE_NAME = @"resources/pp.txt";
 		//const string MANGASATTENTE_FILE_NAME = @"resources/mangas_en_attentes.txt";
 
 		Dictionary<string, ulong> channels = new Dictionary<string, ulong>()
@@ -30,6 +31,7 @@ namespace DiscordBot
 			{ "mangas",         439960408703369217 },
 			{ "mangas_liste",   440228865881800704 },
 			{ "debug",          353262627880697868 },
+			{ "debugs",         456443420378923010 },
 			{ "zone51",         346760327540506643 },
 			{ "peguts",         392118626561294346 }
 		};
@@ -56,6 +58,7 @@ namespace DiscordBot
 			{ "$amaury meme" , "Tout le monde sait ce que c'est." },
 			{ "$mytho ultime" , "El mytho ultima." },
 			{ "$los" , "Trigger la dreamteam de LOS !!" },
+			{ "$pp" , "Random PP Song" },
 
 			{ "==c" , "Autres" },
 			{ "fap" , "Si ta phrase contient un fap alors ... ;)" },
@@ -101,6 +104,7 @@ namespace DiscordBot
 
 		SortedDictionary<string, string> mangasData = new SortedDictionary<string, string>();
 		List<string> baned_people = new List<string>() { /*pseudo["Luc"], "Faellyss"*/ };
+		List<string> pp_songs = new List<string>();
 		const string alpha = "abcdefghijklmnopqrstuvwxyz";
 		private string flip = "(╯°□°）╯︵ ┻━┻";
 		private string unflip = "┬─┬﻿ ノ( ゜-゜ノ)";
@@ -122,6 +126,7 @@ namespace DiscordBot
 
 			//mes setups
 			setupMangasData();
+			setupPpSong();
 
 			//Thread qui regarde les nouveaux scans
 			Thread thread = new Thread(getAllNewChapters);
@@ -320,7 +325,7 @@ namespace DiscordBot
 			{
 				DeleteMessage(message);
 				string msg = "LOS ? " + mention["Bringer"] + " " + mention["Renaud"] + " " + mention["Dimitri"] + " " + mention["Bruno"] + " " + mention["Pierre"] + " " + mention["Mayeul"] + " " + mention["Ferrone"];
-				if (message.Author.Username == pseudo["Luc"])
+				if (message.Author.Id == 150338863234154496)
 					msg = "Luc qui casse les couilles a vouloir trigger le LOS !";
 				else
 					msg += " - " + message.Author.Username + " veut jouer !";
@@ -335,6 +340,12 @@ namespace DiscordBot
 			{
 				DeleteMessage(message);
 				string msg = traffic();
+				await message.Channel.SendMessageAsync(msg);
+			}
+			else if (message_lower == "$pp")
+			{
+				DeleteMessage(message);
+				string msg = randomPpSong();
 				await message.Channel.SendMessageAsync(msg);
 			}
 
@@ -439,6 +450,7 @@ namespace DiscordBot
 			
 			string logprint = "Message reçu de " + message.Author.Username + " : " + message_lower;
 			Console.WriteLine(logprint);
+			//if (message.Channel.Id == channels["general"])
 			System.IO.File.AppendAllText(LOGS_FILE_NAME, logprint+"\n");
 		}
 
@@ -471,6 +483,14 @@ namespace DiscordBot
 
 			Thread.Sleep(1800000);		//30min
 			fillTrafficData();
+		}
+
+		private string randomPpSong() {
+			Random r = new Random();
+			int rInt = r.Next(0, pp_songs.Count-1);
+			var result = pp_songs[rInt];
+			
+			return result;
 		}
 
 		private string traffic()
@@ -641,6 +661,14 @@ namespace DiscordBot
 			catch (Exception e)
 			{
 				displayException(e, "Exception on setupMangasData()");
+			}
+		}
+
+		private void setupPpSong() 
+		{
+			string[] lines = System.IO.File.ReadAllLines(PP_FILE_NAME);
+			foreach (string line in lines) {
+				pp_songs.Add(line);
 			}
 		}
 
