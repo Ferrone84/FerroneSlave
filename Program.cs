@@ -285,11 +285,12 @@ namespace DiscordBot
 			{
 				DeleteMessage(message);
 				string msg = message_lower.Substring(3).ToLower();
-				if (message.Author.Username == pseudo["Luc"])
+				if (message.Author.Id == 150338863234154496)
 					msg = FormateSentence(msg) + " by FlutterShy / Blossom / Pupute";
 				else
 					msg = FormateSentence(msg) + " by " + message.Author.Username;
-				await message.Channel.SendMessageAsync(msg);
+
+				await reply(message, msg);
 			}
 			else if (message_lower == "$lenny")
 			{
@@ -463,6 +464,19 @@ namespace DiscordBot
 			catch (Exception e)
 			{
 				displayException(e, "Impossible to send message, sendMessageTo(ulong channel, string message)");
+			}
+		}
+
+		private async Task reply(SocketMessage message, string msg)
+		{
+			try
+			{
+				await message.Channel.SendMessageAsync(msg);
+			}
+			catch (Exception e)
+			{
+				displayException(e, "Impossible to send message, reply(SocketMessage message, string msg)");
+				await message.Channel.SendMessageAsync("Le message est trop long <3");
 			}
 		}
 
