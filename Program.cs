@@ -14,6 +14,8 @@ using System.IO;
 using System.Net;
 using Newtonsoft.Json.Linq;
 
+using System.Data.SQLite;
+
 namespace DiscordBot
 {
 	public class Program
@@ -103,6 +105,7 @@ namespace DiscordBot
 		private ulong master_id = 293780484822138881;
 
 		SortedDictionary<string, string> mangasData = new SortedDictionary<string, string>();
+		SortedDictionary<string, List<string>> subData = new SortedDictionary<string, List<string>>();
 		List<string> baned_people = new List<string>() { /*pseudo["Luc"], "Faellyss"*/ };
 		List<string> pp_songs = new List<string>();
 		const string alpha = "abcdefghijklmnopqrstuvwxyz";
@@ -133,8 +136,8 @@ namespace DiscordBot
 			thread.Start();
 
 			//Thread qui regarde le temps de trajets
-			Thread traffic_thread = new Thread(fillTrafficData);
-			traffic_thread.Start();
+			//Thread traffic_thread = new Thread(fillTrafficData);
+			//traffic_thread.Start();
 
 			Console.CancelKeyPress += async delegate (object sender, ConsoleCancelEventArgs e) {
 				e.Cancel = true;
@@ -447,6 +450,8 @@ namespace DiscordBot
 				string msg = "";
 				sendMessageTo(channels["debug"], msg);
 				Console.WriteLine(msg);
+
+				Database db = new Database();
 			}
 			
 			string logprint = "Message reçu de " + message.Author.Username + " : " + message_lower;
@@ -815,7 +820,7 @@ namespace DiscordBot
 
 
 
-		private void displayException(Exception e, string message = "Error")
+		public static void displayException(Exception e, string message = "Error")
 		{
 			Console.WriteLine(message + " : \n" + e.Message + "\n");
 			Console.WriteLine(e.StackTrace);
@@ -831,6 +836,33 @@ namespace DiscordBot
 		{
 			string[] lines = System.IO.File.ReadAllLines(TOKEN_FILE_NAME);
 			return lines[1];
+		}
+	}
+
+
+
+
+
+
+	class Database
+	{
+		public SQLiteConnection connection;
+
+		public Database() {
+			try {
+				"debug1".aff();
+				connection = new SQLiteConnection("Data Source=db.sqlite3");
+				"debug2".aff();
+
+				if (!File.Exists("./db.sqlite3")) {
+					"debug3".aff();
+					SQLiteConnection.CreateFile("db.sqlite3");
+					"debug4".aff();
+				}
+			}
+			catch (Exception e) {
+				Program.displayException(e, "Database()");
+			}
 		}
 	}
 
@@ -854,5 +886,18 @@ namespace DiscordBot
 				return (T)binary_serializer.Deserialize(stream);
 			}
 		}
+	}
+
+	static class Extensions
+	{
+		public static void aff(this string str)
+		{
+			Console.WriteLine(str);
+		}
+
+		public static void aff(this int entier)
+		{
+			Console.WriteLine(entier);
+		}		
 	}
 }
