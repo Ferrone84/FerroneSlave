@@ -846,7 +846,7 @@ namespace DiscordBot
 
 	class Database
 	{
-		public SQLiteConnection connection;
+		/*public SQLiteConnection connection;
 
 		public Database() {
 			try {
@@ -859,6 +859,17 @@ namespace DiscordBot
 					SQLiteConnection.CreateFile("db.sqlite3");
 					"debug4".aff();
 				}
+			}
+			catch (Exception e) {
+				Program.displayException(e, "Database()");
+			}
+		}*/
+		public Database() {
+			try {
+				"debug1".aff();
+				DatabaseUtil db = new DatabaseUtil("Data Source=bdd.db","bdd");
+				"debug2".aff();
+				db.ExecuteCommand("CREATE TABLE Persons (PersonID int, LastName varchar(255), FirstName varchar(255), Address varchar(255), City varchar(255));");
 			}
 			catch (Exception e) {
 				Program.displayException(e, "Database()");
