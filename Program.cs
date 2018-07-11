@@ -13,13 +13,18 @@ using System.Threading;
 using System.IO;
 using System.Net;
 using Newtonsoft.Json.Linq;
+using IronPython.Hosting;
+using Microsoft.Scripting.Hosting;
 
-using System.Data.SQLite;
+//using System.Data.SQLite;
+using System.Diagnostics;
 
 namespace DiscordBot
 {
 	public class Program
 	{
+		const string PYTHON_EXE = @"C:\Users\utilisateur\AppData\Local\Programs\Python\Python37\python.exe";
+		const string PYTHON_DIR_PATH = @"resources/python/";
 		const string TOKEN_FILE_NAME = @"resources/token.txt";
 		const string MANGASDATA_FILE_NAME = @"resources/data.txt";
 		const string TRAJETS_FILE_NAME = @"resources/trajets.txt";
@@ -132,14 +137,15 @@ namespace DiscordBot
 			setupPpSong();
 
 			//Thread qui regarde les nouveaux scans
-			Thread thread = new Thread(getAllNewChapters);
-			thread.Start();
+			//Thread thread = new Thread(getAllNewChapters);
+			//thread.Start();
 
 			//Thread qui regarde le temps de trajets
 			//Thread traffic_thread = new Thread(fillTrafficData);
 			//traffic_thread.Start();
 
-			Console.CancelKeyPress += async delegate (object sender, ConsoleCancelEventArgs e) {
+			Console.CancelKeyPress += async delegate (object sender, ConsoleCancelEventArgs e)
+			{
 				e.Cancel = true;
 				await deconnection();
 			};
@@ -451,13 +457,54 @@ namespace DiscordBot
 				sendMessageTo(channels["debug"], msg);
 				Console.WriteLine(msg);
 
-				Database db = new Database();
+				// python app to call 
+				string myPythonApp = PYTHON_DIR_PATH + "test.py";
+
+				// dummy parameters to send Python script 
+				int x = 2;
+				int y = 5;
+
+				// Create new process start info 
+				ProcessStartInfo myProcessStartInfo = new ProcessStartInfo(PYTHON_EXE);
+
+				// make sure we can read the output from stdout 
+				myProcessStartInfo.UseShellExecute = false;
+				myProcessStartInfo.RedirectStandardOutput = true;
+
+				// start python app with 3 arguments  
+				// 1st arguments is pointer to itself,  
+				// 2nd and 3rd are actual arguments we want to send 
+				myProcessStartInfo.Arguments = myPythonApp + " " + x + " " + y;
+
+				Process myProcess = new Process();
+				// assign start information to the process 
+				myProcess.StartInfo = myProcessStartInfo;
+
+				Console.WriteLine("Calling Python script with arguments {0} and {1}", x, y);
+				// start the process 
+				myProcess.Start();
+
+				// Read the standard output of the app we called.  
+				// in order to avoid deadlock we will read output first 
+				// and then wait for process terminate: 
+				StreamReader myStreamReader = myProcess.StandardOutput;
+				string myString = myStreamReader.ReadLine();
+
+				/*if you need to read multiple lines, you might use: 
+					string myString = myStreamReader.ReadToEnd() */
+
+				// wait exit signal from the app we called and then close it. 
+				myProcess.WaitForExit();
+				myProcess.Close();
+
+				// write the output we got from python app 
+				Console.WriteLine("Value received from script: " + myString);
 			}
-			
+
 			string logprint = "Message reçu de " + message.Author.Username + " : " + message_lower;
 			Console.WriteLine(logprint);
 			//if (message.Channel.Id == channels["general"])
-			System.IO.File.AppendAllText(LOGS_FILE_NAME, logprint+"\n");
+			System.IO.File.AppendAllText(LOGS_FILE_NAME, logprint + "\n");
 		}
 
 		private void sendMessageTo(ulong channel, string message)
@@ -485,7 +532,8 @@ namespace DiscordBot
 			}
 		}
 
-		private void fillTrafficData() {
+		private void fillTrafficData()
+		{
 			var time = DateTime.Now;
 			Console.WriteLine("fillTrafficData (" + time + ")");
 
@@ -500,22 +548,23 @@ namespace DiscordBot
 			var now = DateTime.Now - time;
 			Console.WriteLine("fill traffic data done. (" + DateTime.Now + ") [" + now + "]");
 
-			Thread.Sleep(1800000);		//30min
+			Thread.Sleep(1800000);      //30min
 			fillTrafficData();
 		}
 
-		private string randomPpSong() {
+		private string randomPpSong()
+		{
 			Random r = new Random();
-			int rInt = r.Next(0, pp_songs.Count-1);
+			int rInt = r.Next(0, pp_songs.Count - 1);
 			var result = pp_songs[rInt];
-			
+
 			return result;
 		}
 
 		private string traffic()
 		{
 			string result = "";
-			string url = "https://maps.googleapis.com/maps/api/directions/json?origin=Centre+d'Enseignement+et+de+Recherche+en+Informatique&destination=Robion&key="+getApiKey();
+			string url = "https://maps.googleapis.com/maps/api/directions/json?origin=Centre+d'Enseignement+et+de+Recherche+en+Informatique&destination=Robion&key=" + getApiKey();
 
 			WebRequest request = WebRequest.Create(url);
 			WebResponse response = request.GetResponse();
@@ -622,8 +671,8 @@ namespace DiscordBot
 			var now = DateTime.Now - time;
 			Console.WriteLine("search done. (" + DateTime.Now + ") [" + now + "]");
 
-			//Thread.Sleep(10800000);	//3h
-			Thread.Sleep(1800000);		//30min
+			Thread.Sleep(10800000); //3h
+									//Thread.Sleep(1800000);		//30min
 			getAllNewChapters();
 		}
 
@@ -683,10 +732,11 @@ namespace DiscordBot
 			}
 		}
 
-		private void setupPpSong() 
+		private void setupPpSong()
 		{
 			string[] lines = System.IO.File.ReadAllLines(PP_FILE_NAME);
-			foreach (string line in lines) {
+			foreach (string line in lines)
+			{
 				pp_songs.Add(line);
 			}
 		}
@@ -846,32 +896,17 @@ namespace DiscordBot
 
 	class Database
 	{
-		/*public SQLiteConnection connection;
-
-		public Database() {
-			try {
+		public Database()
+		{
+			try
+			{
 				"debug1".aff();
-				connection = new SQLiteConnection("Data Source=db.sqlite3");
-				"debug2".aff();
-
-				if (!File.Exists("./db.sqlite3")) {
-					"debug3".aff();
-					SQLiteConnection.CreateFile("db.sqlite3");
-					"debug4".aff();
-				}
-			}
-			catch (Exception e) {
-				Program.displayException(e, "Database()");
-			}
-		}*/
-		public Database() {
-			try {
-				"debug1".aff();
-				DatabaseUtil db = new DatabaseUtil("Data Source=bdd.db","bdd");
+				DatabaseUtil db = new DatabaseUtil("Data Source=bdd.db", "bdd");
 				"debug2".aff();
 				db.ExecuteCommand("CREATE TABLE Persons (PersonID int, LastName varchar(255), FirstName varchar(255), Address varchar(255), City varchar(255));");
 			}
-			catch (Exception e) {
+			catch (Exception e)
+			{
 				Program.displayException(e, "Database()");
 			}
 		}
@@ -909,6 +944,6 @@ namespace DiscordBot
 		public static void aff(this int entier)
 		{
 			Console.WriteLine(entier);
-		}		
+		}
 	}
 }
