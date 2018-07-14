@@ -15,8 +15,6 @@ using System.Net;
 using Newtonsoft.Json.Linq;
 using IronPython.Hosting;
 using Microsoft.Scripting.Hosting;
-
-//using System.Data.SQLite;
 using System.Diagnostics;
 
 namespace DiscordBot
@@ -137,8 +135,8 @@ namespace DiscordBot
 			setupPpSong();
 
 			//Thread qui regarde les nouveaux scans
-			//Thread thread = new Thread(getAllNewChapters);
-			//thread.Start();
+			Thread thread = new Thread(getAllNewChapters);
+			thread.Start();
 
 			//Thread qui regarde le temps de trajets
 			//Thread traffic_thread = new Thread(fillTrafficData);
@@ -457,48 +455,8 @@ namespace DiscordBot
 				sendMessageTo(channels["debug"], msg);
 				Console.WriteLine(msg);
 
-				// python app to call 
-				string myPythonApp = PYTHON_DIR_PATH + "test.py";
-
-				// dummy parameters to send Python script 
-				int x = 2;
-				int y = 5;
-
-				// Create new process start info 
-				ProcessStartInfo myProcessStartInfo = new ProcessStartInfo(PYTHON_EXE);
-
-				// make sure we can read the output from stdout 
-				myProcessStartInfo.UseShellExecute = false;
-				myProcessStartInfo.RedirectStandardOutput = true;
-
-				// start python app with 3 arguments  
-				// 1st arguments is pointer to itself,  
-				// 2nd and 3rd are actual arguments we want to send 
-				myProcessStartInfo.Arguments = myPythonApp + " " + x + " " + y;
-
-				Process myProcess = new Process();
-				// assign start information to the process 
-				myProcess.StartInfo = myProcessStartInfo;
-
-				Console.WriteLine("Calling Python script with arguments {0} and {1}", x, y);
-				// start the process 
-				myProcess.Start();
-
-				// Read the standard output of the app we called.  
-				// in order to avoid deadlock we will read output first 
-				// and then wait for process terminate: 
-				StreamReader myStreamReader = myProcess.StandardOutput;
-				string myString = myStreamReader.ReadLine();
-
-				/*if you need to read multiple lines, you might use: 
-					string myString = myStreamReader.ReadToEnd() */
-
-				// wait exit signal from the app we called and then close it. 
-				myProcess.WaitForExit();
-				myProcess.Close();
-
-				// write the output we got from python app 
-				Console.WriteLine("Value received from script: " + myString);
+				runPython("aa.py").aff();
+				runPython("sum.py", "1", "2").aff();
 			}
 
 			string logprint = "Message reçu de " + message.Author.Username + " : " + message_lower;
@@ -886,6 +844,60 @@ namespace DiscordBot
 		{
 			string[] lines = System.IO.File.ReadAllLines(TOKEN_FILE_NAME);
 			return lines[1];
+		}
+
+
+		/*
+		 * runPython("filename").aff();
+		 * runPython("filename", "a", "b").aff();
+		 * runPython("filename", new string[] { "c", "d" }).aff();
+		*/
+		private string runPython(string fileName, params string[] args)
+		{
+			string result = "";
+			string arguments = "";
+			string file = PYTHON_DIR_PATH + fileName;
+
+			if (args.Length != 0)
+			{
+				arguments += " ";
+				for (int i=0; i < args.Length; i++)
+				{
+					arguments += args[i];
+					if (i != args.Length - 1)
+						arguments += " ";
+				}
+			}
+
+			// Create new process start info 
+			ProcessStartInfo myProcessStartInfo = new ProcessStartInfo(PYTHON_EXE);
+
+			// make sure we can read the output from stdout 
+			myProcessStartInfo.UseShellExecute = false;
+			myProcessStartInfo.RedirectStandardOutput = true;
+			myProcessStartInfo.Arguments = file + arguments;
+
+			Process myProcess = new Process();
+			// assign start information to the process 
+			myProcess.StartInfo = myProcessStartInfo;
+
+			// start the process 
+			myProcess.Start();
+
+			// Read the standard output of the app we called.  
+			// in order to avoid deadlock we will read output first 
+			// and then wait for process terminate: 
+			StreamReader myStreamReader = myProcess.StandardOutput;
+			result = myStreamReader.ReadLine();
+
+			//if you need to read multiple lines, you might use: 
+			//string myString = myStreamReader.ReadToEnd()
+
+			// wait exit signal from the app we called and then close it. 
+			myProcess.WaitForExit();
+			myProcess.Close();			
+
+			return result;
 		}
 	}
 
