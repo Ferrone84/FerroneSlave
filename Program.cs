@@ -21,15 +21,6 @@ namespace DiscordBot
 {
 	public class Program
 	{
-		const string PYTHON_EXE = @"C:\Users\utilisateur\AppData\Local\Programs\Python\Python37\python.exe";
-		const string PYTHON_DIR_PATH = @"resources/python/";
-		const string TOKEN_FILE_NAME = @"resources/token.txt";
-		const string MANGASDATA_FILE_NAME = @"resources/data.txt";
-		const string TRAJETS_FILE_NAME = @"resources/trajets.txt";
-		const string LOGS_FILE_NAME = @"resources/logs.txt";
-		const string PP_FILE_NAME = @"resources/pp.txt";
-		//const string MANGASATTENTE_FILE_NAME = @"resources/mangas_en_attentes.txt";
-
 		Dictionary<string, ulong> channels = new Dictionary<string, ulong>()
 		{
 			{ "general",        309407896070782976 },
@@ -103,17 +94,19 @@ namespace DiscordBot
 			{ "Bruno",      "<@227490882033680384>" }
 		};
 
+		private const string alpha = "abcdefghijklmnopqrstuvwxyz";
+		private string flip = "(╯°□°）╯︵ ┻━┻";
+		private string unflip = "┬─┬﻿ ノ( ゜-゜ノ)";
+
 		private DiscordSocketClient _client;
 		private CancellationTokenSource delay_controller;
 		private ulong master_id = 293780484822138881;
 
-		SortedDictionary<string, string> mangasData = new SortedDictionary<string, string>();
-		SortedDictionary<string, List<string>> subData = new SortedDictionary<string, List<string>>();
-		List<string> baned_people = new List<string>() { /*pseudo["Luc"], "Faellyss"*/ };
-		List<string> pp_songs = new List<string>();
-		const string alpha = "abcdefghijklmnopqrstuvwxyz";
-		private string flip = "(╯°□°）╯︵ ┻━┻";
-		private string unflip = "┬─┬﻿ ノ( ゜-゜ノ)";
+		private Database database;
+		private List<string> pp_songs;
+		private List<string> baned_people;
+		private SortedDictionary<string, string> mangasData;
+		private SortedDictionary<string, List<string>> subData;
 
 		public static void Main(string[] args)
 			=> new Program().MainAsync().GetAwaiter().GetResult();
@@ -130,13 +123,20 @@ namespace DiscordBot
 			await _client.LoginAsync(TokenType.Bot, token);
 			await _client.StartAsync();
 
+			//inits
+			database = new Database();
+			pp_songs = new List<string>();
+			baned_people = new List<string>();
+			mangasData = new SortedDictionary<string, string>();
+			subData = new SortedDictionary<string, List<string>>();
+
 			//mes setups
 			setupMangasData();
 			setupPpSong();
 
 			//Thread qui regarde les nouveaux scans
-			Thread thread = new Thread(getAllNewChapters);
-			thread.Start();
+			//Thread thread = new Thread(getAllNewChapters);
+			//thread.Start();
 
 			//Thread qui regarde le temps de trajets
 			//Thread traffic_thread = new Thread(fillTrafficData);
@@ -172,7 +172,7 @@ namespace DiscordBot
 			}
 			catch (Exception e)
 			{
-				displayException(e, "deconnection");
+				Utils.displayException(e, "deconnection");
 			}
 		}
 
@@ -264,7 +264,7 @@ namespace DiscordBot
 				}
 				catch (Exception e)
 				{
-					displayException(e, "!scans");
+					Utils.displayException(e, "!scans");
 				}
 			}
 			else if (message_lower.StartsWith("!lastchapter"))
@@ -455,14 +455,22 @@ namespace DiscordBot
 				sendMessageTo(channels["debug"], msg);
 				Console.WriteLine(msg);
 
-				runPython("aa.py").aff();
-				runPython("sum.py", "1", "2").aff();
+				//Utils.runPython("aa.py").aff();
+				//Utils.runPython("sum.py", "1", "2").aff();
+
+				database.init();
+				database.addUser("293780484822138881", "ferrone", "nico", 1).aff();
+				database.addUser("442744684646", "fereffzsedffrone", "nddcico", 0).aff();
+				database.get("users").aff();
+				database.get("mangas").aff();
+
+				return;
 			}
 
 			string logprint = "Message reçu de " + message.Author.Username + " : " + message_lower;
 			Console.WriteLine(logprint);
 			//if (message.Channel.Id == channels["general"])
-			System.IO.File.AppendAllText(LOGS_FILE_NAME, logprint + "\n");
+			System.IO.File.AppendAllText(Utils.LOGS_FILE_NAME, logprint + "\n");
 		}
 
 		private void sendMessageTo(ulong channel, string message)
@@ -473,7 +481,7 @@ namespace DiscordBot
 			}
 			catch (Exception e)
 			{
-				displayException(e, "Impossible to send message, sendMessageTo(ulong channel, string message)");
+				Utils.displayException(e, "Impossible to send message, sendMessageTo(ulong channel, string message)");
 			}
 		}
 
@@ -485,7 +493,7 @@ namespace DiscordBot
 			}
 			catch (Exception e)
 			{
-				displayException(e, "Impossible to send message, reply(SocketMessage message, string msg)");
+				Utils.displayException(e, "Impossible to send message, reply(SocketMessage message, string msg)");
 				await message.Channel.SendMessageAsync("Le message est trop long <3");
 			}
 		}
@@ -501,7 +509,7 @@ namespace DiscordBot
 			string result = day + ":" + hour + "=" + duration + "\n";
 
 			if (Int32.Parse(time.Hour.ToString()) > 8 && Int32.Parse(time.Hour.ToString()) < 21)
-				System.IO.File.AppendAllText(TRAJETS_FILE_NAME, result);
+				System.IO.File.AppendAllText(Utils.TRAJETS_FILE_NAME, result);
 
 			var now = DateTime.Now - time;
 			Console.WriteLine("fill traffic data done. (" + DateTime.Now + ") [" + now + "]");
@@ -575,7 +583,7 @@ namespace DiscordBot
 				string chapter = getLastChapterOf(manga);
 
 				string result = "\n" + manga + "|" + chapter;
-				System.IO.File.AppendAllText(MANGASDATA_FILE_NAME, result);
+				System.IO.File.AppendAllText(Utils.MANGASDATA_FILE_NAME, result);
 				setupMangasData();
 
 				msg = "Manga '" + manga + "' ajouté à la liste.";
@@ -612,7 +620,7 @@ namespace DiscordBot
 						toWrite = toWrite.Remove(pos, nextLinePos - pos);
 						toWrite = toWrite.Insert(pos, chapter);
 
-						System.IO.File.WriteAllText(MANGASDATA_FILE_NAME, toWrite);
+						System.IO.File.WriteAllText(Utils.MANGASDATA_FILE_NAME, toWrite);
 
 						string msg = "Nouveau scan trouvé pour " + kvp.Key + " : \n\t" + chapter;
 						if (!chapter.Contains("VUS") && !chapter.Contains("JAP") && !chapter.Contains("SPOILER") && !chapter.Contains("RAW"))
@@ -623,7 +631,7 @@ namespace DiscordBot
 				}
 				catch (Exception e)
 				{
-					displayException(e, "Exception on getAllNewChapters()");
+					Utils.displayException(e, "Exception on getAllNewChapters()");
 				}
 			}
 			var now = DateTime.Now - time;
@@ -674,7 +682,7 @@ namespace DiscordBot
 			try
 			{
 				mangasData = new SortedDictionary<string, string>();
-				string[] lines = System.IO.File.ReadAllLines(MANGASDATA_FILE_NAME);
+				string[] lines = System.IO.File.ReadAllLines(Utils.MANGASDATA_FILE_NAME);
 				foreach (string line in lines)
 				{
 					var data = line.Split('|');
@@ -686,13 +694,13 @@ namespace DiscordBot
 			}
 			catch (Exception e)
 			{
-				displayException(e, "Exception on setupMangasData()");
+				Utils.displayException(e, "Exception on setupMangasData()");
 			}
 		}
 
 		private void setupPpSong()
 		{
-			string[] lines = System.IO.File.ReadAllLines(PP_FILE_NAME);
+			string[] lines = System.IO.File.ReadAllLines(Utils.PP_FILE_NAME);
 			foreach (string line in lines)
 			{
 				pp_songs.Add(line);
@@ -762,7 +770,7 @@ namespace DiscordBot
 			}
 			catch (Exception e)
 			{
-				displayException(e, "DeleteException on DeleteMessage(SocketMessage message)");
+				Utils.displayException(e, "DeleteException on DeleteMessage(SocketMessage message)");
 			}
 		}
 
@@ -825,137 +833,16 @@ namespace DiscordBot
 		}
 
 
-
-
-
-		public static void displayException(Exception e, string message = "Error")
-		{
-			Console.WriteLine(message + " : \n" + e.Message + "\n");
-			Console.WriteLine(e.StackTrace);
-		}
-
 		private string getToken()
 		{
-			string[] lines = System.IO.File.ReadAllLines(TOKEN_FILE_NAME);
+			string[] lines = System.IO.File.ReadAllLines(Utils.TOKEN_FILE_NAME);
 			return lines[0];
 		}
 
 		private string getApiKey()
 		{
-			string[] lines = System.IO.File.ReadAllLines(TOKEN_FILE_NAME);
+			string[] lines = System.IO.File.ReadAllLines(Utils.TOKEN_FILE_NAME);
 			return lines[1];
-		}
-
-
-		/*
-		 * runPython("filename").aff();
-		 * runPython("filename", "a", "b").aff();
-		 * runPython("filename", new string[] { "c", "d" }).aff();
-		*/
-		private string runPython(string fileName, params string[] args)
-		{
-			string result = "";
-			string arguments = "";
-			string file = PYTHON_DIR_PATH + fileName;
-
-			if (args.Length != 0)
-			{
-				arguments += " ";
-				for (int i=0; i < args.Length; i++)
-				{
-					arguments += args[i];
-					if (i != args.Length - 1)
-						arguments += " ";
-				}
-			}
-
-			// Create new process start info 
-			ProcessStartInfo myProcessStartInfo = new ProcessStartInfo(PYTHON_EXE);
-
-			// make sure we can read the output from stdout 
-			myProcessStartInfo.UseShellExecute = false;
-			myProcessStartInfo.RedirectStandardOutput = true;
-			myProcessStartInfo.Arguments = file + arguments;
-
-			Process myProcess = new Process();
-			// assign start information to the process 
-			myProcess.StartInfo = myProcessStartInfo;
-
-			// start the process 
-			myProcess.Start();
-
-			// Read the standard output of the app we called.  
-			// in order to avoid deadlock we will read output first 
-			// and then wait for process terminate: 
-			StreamReader myStreamReader = myProcess.StandardOutput;
-			result = myStreamReader.ReadLine();
-
-			//if you need to read multiple lines, you might use: 
-			//string myString = myStreamReader.ReadToEnd()
-
-			// wait exit signal from the app we called and then close it. 
-			myProcess.WaitForExit();
-			myProcess.Close();			
-
-			return result;
-		}
-	}
-
-
-
-
-
-
-	class Database
-	{
-		public Database()
-		{
-			try
-			{
-				"debug1".aff();
-				DatabaseUtil db = new DatabaseUtil("Data Source=bdd.db", "bdd");
-				"debug2".aff();
-				db.ExecuteCommand("CREATE TABLE Persons (PersonID int, LastName varchar(255), FirstName varchar(255), Address varchar(255), City varchar(255));");
-			}
-			catch (Exception e)
-			{
-				Program.displayException(e, "Database()");
-			}
-		}
-	}
-
-
-
-	class BotStateManager
-	{
-		public static void Save<T>(string filename, T obj)
-		{
-			using (Stream stream = File.Open(filename, FileMode.Create))
-			{
-				var binary_serializer = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
-				binary_serializer.Serialize(stream, obj);
-			}
-		}
-		public static T Load<T>(string filename)
-		{
-			using (Stream stream = File.Open(filename, FileMode.Open))
-			{
-				var binary_serializer = new System.Runtime.Serialization.Formatters.Binary.BinaryFormatter();
-				return (T)binary_serializer.Deserialize(stream);
-			}
-		}
-	}
-
-	static class Extensions
-	{
-		public static void aff(this string str)
-		{
-			Console.WriteLine(str);
-		}
-
-		public static void aff(this int entier)
-		{
-			Console.WriteLine(entier);
 		}
 	}
 }
