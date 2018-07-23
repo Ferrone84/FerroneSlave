@@ -14,6 +14,12 @@ values = []
 if (len(sys.argv) > 2):
 	values = (sys.argv[2]).split(":")
 
+for ndx, value in enumerate(values):
+	try:
+		values[ndx] = int(value);
+	except ValueError:
+		continue
+
 results = cursor.execute(query, values)
 
 for result in results:

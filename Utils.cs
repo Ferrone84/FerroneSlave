@@ -89,6 +89,59 @@ namespace DiscordBot
 
 			return result;
 		}
+
+		public static string onlyKeepDigits(string str)
+		{
+			return new string((from c in str
+							   where char.IsDigit(c)
+							   select c
+			).ToArray());
+		}
+
+		public static string onlyKeepLetters(string str)
+		{
+			return new string((from c in str
+							   where char.IsLetterOrDigit(c) || char.IsWhiteSpace(c)
+							   select c
+			).ToArray());
+		}
+
+		public static string onlyKeepLetters(string str, List<char> chars)
+		{
+			return new string((from c in str
+							   where char.IsLetterOrDigit(c) || char.IsWhiteSpace(c) || chars.Contains(c)
+							   select c
+			).ToArray());
+		}
+
+		public static List<string> moreThanTwoThousandsChars(string str)
+		{
+			List<string> result = new List<string>();
+
+			int start = 0;
+			while (str.Length >= 2000)
+			{
+				result.Add(str.Substring(start, 1999));
+				start += 1999;
+				str = str.Remove(0, 1999);
+			}
+			result.Add(str);
+			return result;
+			/*if (str == String.Empty)
+				return new List<string>();
+
+			str.debug();
+			var a = (List<string>) Split(str, 1999);
+			foreach (var b in a)
+				b.aff();
+			return a;*/
+		}
+
+		public static IEnumerable<string> Split(string str, int chunkSize)
+		{
+			return Enumerable.Range(0, str.Length / chunkSize)
+				.Select(i => str.Substring(i * chunkSize, chunkSize));
+		}
 	}
 
 	static class Extensions
@@ -96,6 +149,10 @@ namespace DiscordBot
 		public static void aff(this string str)
 		{
 			Console.WriteLine(str);
+		}
+		public static void debug(this string str)
+		{
+			Console.WriteLine("/"+str+"/");
 		}
 
 		public static void aff(this int entier)

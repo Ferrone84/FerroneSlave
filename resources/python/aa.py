@@ -24,10 +24,10 @@ for result in results:
 	display += str(result)+":"
 
 
-results = cursor.execute(''' SELECT titre FROM subs JOIN mangas ON(subs.manga=mangas.id) JOIN users ON(subs.user=users.id) WHERE pseudo='ferrone' ''')
+# results = cursor.execute(''' SELECT titre FROM subs JOIN mangas ON(subs.manga=mangas.id) JOIN users ON(subs.user=users.id) WHERE pseudo='ferrone' ''')
 
-for result in results:
-	display += str(result)+":"
+# for result in results:
+# 	display += str(result)+":"
 
 connection.close()
 

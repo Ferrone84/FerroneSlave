@@ -135,8 +135,8 @@ namespace DiscordBot
 			setupPpSong();
 
 			//Thread qui regarde les nouveaux scans
-			//Thread thread = new Thread(getAllNewChapters);
-			//thread.Start();
+			/*Thread thread = new Thread(getAllNewChapters);
+			thread.Start();*/
 
 			//Thread qui regarde le temps de trajets
 			//Thread traffic_thread = new Thread(fillTrafficData);
@@ -275,6 +275,36 @@ namespace DiscordBot
 			else if (message_lower.StartsWith("!addmanga"))
 			{
 				string msg = addManga(message_lower);
+				await message.Channel.SendMessageAsync(msg);
+			}
+			else if (message_lower.StartsWith("!subto"))
+			{
+				string msg = "";
+				if (message_lower.Length > 6)
+					msg = database.subTo(message.Author.Id.ToString(), message_lower.Split(' ')[1]);
+				else
+					msg = "Il faut mettre un titre de manga. Ex : !subto one-piece";
+
+				await message.Channel.SendMessageAsync(msg);
+			}
+			else if (message_lower.StartsWith("!unsubto"))
+			{
+				string msg = "";
+				if (message_lower.Length > 8)
+					msg = database.unsubTo(message.Author.Id.ToString(), message_lower.Split(' ')[1]);
+				else
+					msg = "Il faut mettre un titre de manga. Ex : !unsubto one-piece";
+
+				await message.Channel.SendMessageAsync(msg);
+			}
+			else if (message_lower.StartsWith("!sublist"))
+			{
+				string msg = "";
+				if (message_lower.Length > 8)
+					msg = database.subList(message.Author.Id.ToString(), message_lower.Split(' ')[1]);
+				else
+					msg = database.subList(message.Author.Id.ToString());
+
 				await message.Channel.SendMessageAsync(msg);
 			}
 			else if (message_lower == "!help")
@@ -451,18 +481,32 @@ namespace DiscordBot
 			//debug zone
 			if (message_lower == "!d")
 			{
-				string msg = "";
+				/*string msg = "";
 				sendMessageTo(channels["debug"], msg);
-				Console.WriteLine(msg);
+				Console.WriteLine(msg);*/
 
-				//Utils.runPython("aa.py").aff();
-				//Utils.runPython("sum.py", "1", "2").aff();
-
-				database.init();
+				/*database.init();
+				database.loadMangas(mangasData);
 				database.addUser("293780484822138881", "ferrone", "nico", 1).aff();
-				database.addUser("442744684646", "fereffzsedffrone", "nddcico", 0).aff();
-				database.get("users").aff();
-				database.get("mangas").aff();
+				database.addUser("150338863234154496", "fluttershy", "luc", 0).aff();
+				database.subTo("150338863234154496", "one-piece").aff();*/
+
+				//database.addUser("442744684646", "fereffzsedffrone", "nddcico", 0).aff();
+				//database.get("users").aff();
+				/*database.get("mangas").aff();
+				database.loadMangas(mangasData);
+				database.get("mangas").aff();*/
+				/*database.subTo("293780484822138881", "one-piece").aff();
+				"a".aff();
+				database.subTo("293780484822138881", "one-piecee").aff();
+				"b".aff();
+				database.subTo("455645545545455242", "one-piece").aff();
+				"c".aff();
+				database.subTo("293780484822138881", "one-piece").aff();*/
+				"aaa".aff();
+				foreach(var a in database.display())
+					await message.Channel.SendMessageAsync(a);
+				"bbb".aff();
 
 				return;
 			}

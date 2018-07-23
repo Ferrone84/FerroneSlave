@@ -18,7 +18,7 @@ cursor.execute('''CREATE TABLE mangas
 
 cursor.execute('''DROP TABLE IF EXISTS subs''')
 cursor.execute('''CREATE TABLE subs
-			  (id INTEGER PRIMARY KEY AUTOINCREMENT, user INTEGER, manga INTEGER)''')
+			  (id INTEGER PRIMARY KEY AUTOINCREMENT, user INTEGER CHECK(typeof(user) = 'integer'), manga INTEGER CHECK(typeof(manga) = 'integer'))''')
 
 
 
