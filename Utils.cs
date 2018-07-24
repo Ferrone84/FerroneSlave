@@ -51,7 +51,7 @@ namespace DiscordBot
 			if (args.Length != 0)
 			{
 				arguments += " ";
-				for (int i = 0; i < args.Length; i++)
+				for (int i = 0; i < args.Length; i++) //un Select serait mieux, mais flemme
 				{
 					arguments += args[i];
 					if (i != args.Length - 1)
@@ -158,6 +158,11 @@ namespace DiscordBot
 		public static void aff(this int entier)
 		{
 			Console.WriteLine(entier);
+		}
+
+		public static void aff(this bool var)
+		{
+			Console.WriteLine(var);
 		}
 	}
 }

@@ -66,7 +66,6 @@ namespace DiscordBot
 			return "Table [" + table + "] : \n" + Utils.runPython("query_executor.py", query).Replace(':', '\n');
 		}
 
-
 		public string subTo(string uid, string manga)
 		{
 			string mangaId = makeQuery("SELECT id FROM mangas WHERE titre=?", manga);
@@ -111,7 +110,6 @@ namespace DiscordBot
 
 		public string subList(string uid, string user = "")
 		{
-			//SELECT titre FROM subs JOIN mangas ON(subs.manga=mangas.id) JOIN users ON(subs.user=users.id) WHERE pseudo='ferrone'
 			string result = String.Empty;
 			string userId = makeQuery("SELECT id FROM users WHERE uid=?", uid);
 			if (userId.Equals(String.Empty))
@@ -131,10 +129,6 @@ namespace DiscordBot
 				{
 					string usr = Utils.onlyKeepLetters(makeQuery("SELECT pseudo FROM users WHERE id=?", usrId));
 					result += "Abonnements de **" + usr + "** : \n";
-					/*result += Utils.onlyKeepLetters(
-						makeQuery("SELECT titre FROM subs JOIN mangas ON(subs.manga=mangas.id) JOIN users ON(subs.user=users.id) WHERE subs.user=?", usrId), 
-						new List<char>() { '-', '\n' }
-						) + "\n";*/
 					var mangas = Utils.onlyKeepLetters(
 						makeQuery("SELECT titre FROM subs JOIN mangas ON(subs.manga=mangas.id) JOIN users ON(subs.user=users.id) WHERE subs.user=?", usrId),
 						new List<char>() { '-', '\n' }
@@ -147,19 +141,28 @@ namespace DiscordBot
 			}
 			else
 			{
-
+				return "pas encore implémenté";
 			}
-			return String.Empty;
 		}
 
 		public bool idAdmin(string uid)
 		{
+			string userId = makeQuery("SELECT id FROM users WHERE uid=?", uid);
+			if (userId.Equals(String.Empty))
+				return false;
+
+			userId = Utils.onlyKeepDigits(userId);
+			string result = makeQuery("SELECT admin FROM users WHERE id=?", userId);
+			result = Utils.onlyKeepDigits(result);
+			if (result == "1")
+				return true;
+
 			return false;
 		}
 
 		public List<string> display()
 		{
-			return Utils.moreThanTwoThousandsChars(Utils.runPython("aa.py").Replace(':', '\n'));
+			return Utils.moreThanTwoThousandsChars(Utils.runPython("display.py").Replace(':', '\n'));
 		}
 
 

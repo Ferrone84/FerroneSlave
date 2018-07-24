@@ -46,7 +46,11 @@ namespace DiscordBot
 			{ "!addmanga" , "Ajoute le manga en paramètre à la liste. (!addmanga one-piece)" },
 			{ "!help" , "Affiche toutes les options." },
 
-			{ "==b" , "Les deletes" },
+			{ "==b" , "Les commandes admin" },
+			{ "!!adduser" , "Ajoute un utilisateur à la bdd." },
+			{ "!!d" , "Affiche la bdd." },
+
+			{ "==c" , "Les deletes" },
 			{ "$fs" , "Formate la phrase qui suit avec de jolies lettres." },
 			{ "$lenny" , "Affiche le meme 'lenny'." },
 			{ "$popopo" , "Affiche le meme 'popopo'." },
@@ -55,9 +59,9 @@ namespace DiscordBot
 			{ "$mytho ultime" , "El mytho ultima." },
 			{ "$los" , "Trigger la dreamteam de LOS !!" },
 			{ "$pp" , "Random PP Song" },
+			{ "$fap" , "Si t'aime te fap ;)" },
 
-			{ "==c" , "Autres" },
-			{ "fap" , "Si ta phrase contient un fap alors ... ;)" },
+			{ "==d" , "Autres" },
 			{ "bite" , "Si ta phrase contient une bite alors PEPE." },
 			{ "musique de génie" , "Le jour où tu veux écouter de la vrai musique." },
 			{ "Gamabunta" , "Meme naruto." },
@@ -69,7 +73,7 @@ namespace DiscordBot
 			{ "hanauta sancho" , "Le génie de Brook." },
 			{ "DETROIT SMAAAAAAAAASH" , "Cqfd." },
 
-			{ "==d" , "Automatique" },
+			{ "==e" , "Automatique" },
 			{ "Les hashtags" , "Plus utilisé depuis 2012 (excepté par moi)." },
 			{ "BALDSIGNAL !!" , "Se lance quand on utilise l'émote du baldsignal !!" }
 		};
@@ -103,6 +107,7 @@ namespace DiscordBot
 		private ulong master_id = 293780484822138881;
 
 		private Database database;
+		private SocketGuild guild;
 		private List<string> pp_songs;
 		private List<string> baned_people;
 		private SortedDictionary<string, string> mangasData;
@@ -127,6 +132,7 @@ namespace DiscordBot
 			database = new Database();
 			pp_songs = new List<string>();
 			baned_people = new List<string>();
+			guild = _client.GetGuild(309407896070782976); //WTFFFFFFFFFFFFFFFFFFFF
 			mangasData = new SortedDictionary<string, string>();
 			subData = new SortedDictionary<string, List<string>>();
 
@@ -135,8 +141,8 @@ namespace DiscordBot
 			setupPpSong();
 
 			//Thread qui regarde les nouveaux scans
-			/*Thread thread = new Thread(getAllNewChapters);
-			thread.Start();*/
+			Thread thread = new Thread(getAllNewChapters);
+			thread.Start();
 
 			//Thread qui regarde le temps de trajets
 			//Thread traffic_thread = new Thread(fillTrafficData);
@@ -386,17 +392,18 @@ namespace DiscordBot
 				string msg = randomPpSong();
 				await message.Channel.SendMessageAsync(msg);
 			}
+			else if (message_lower == ("$fap"))
+			{
+				DeleteMessage(message);
+				string msg = "https://giphy.com/gifs/fap-Bk2NzCbwFH6sE";
+				await message.Channel.SendMessageAsync(msg);
+			}
 
 
 			///////////////////////////////////////////////////////////////////
 			//							  Autres
 			///////////////////////////////////////////////////////////////////
 
-			if (message_lower.Contains("fap"))
-			{
-				string msg = "https://giphy.com/gifs/fap-Bk2NzCbwFH6sE";
-				await message.Channel.SendMessageAsync(msg);
-			}
 			if (message_lower.Contains("bite"))
 			{
 				int it = CountIterations(message.ToString().ToLower(), "bite");
@@ -478,6 +485,38 @@ namespace DiscordBot
 			}*/
 
 
+
+			///////////////////////////////////////////////////////////////////
+			//							  Partie Admin
+			///////////////////////////////////////////////////////////////////
+
+
+			if (message_lower.StartsWith("!!adduser") && verifyAdmin(message))
+			{
+				string msg = String.Empty;
+				if (message_lower.Length <= "!!adduser".Length)
+				{
+					await message.Channel.SendMessageAsync("Il faut rentrer des arguments. Ex : !!adduser 293780484822138881 ferrone nico");
+					return;
+				}
+				try
+				{
+					var args = message.Content.Split(' ');
+					database.addUser(args[1], args[2], args[3]);
+				}
+				catch (Exception e)
+				{
+					Utils.displayException(e, "!!adduser");
+					await message.Channel.SendMessageAsync("Il faut rentrer des arguments. Ex : !!adduser 293780484822138881 ferrone nico");
+				}
+			}
+			else if (message_lower.StartsWith("!!d") && verifyAdmin(message))
+			{
+				foreach (var elem in database.display())
+					await message.Channel.SendMessageAsync(elem);
+			}
+
+
 			//debug zone
 			if (message_lower == "!d")
 			{
@@ -503,10 +542,26 @@ namespace DiscordBot
 				database.subTo("455645545545455242", "one-piece").aff();
 				"c".aff();
 				database.subTo("293780484822138881", "one-piece").aff();*/
-				"aaa".aff();
-				foreach(var a in database.display())
-					await message.Channel.SendMessageAsync(a);
-				"bbb".aff();
+				//"aaa".aff();
+				/*foreach(var a in database.display())
+					await message.Channel.SendMessageAsync(a);*/
+				//"bbb".aff();
+
+				SocketGuild guild = _client.GetGuild(309407896070782976);
+				guild.ToString().aff();
+				var users = guild.Users;
+				foreach (var user in users)
+				{
+					foreach (var role in user.Roles)
+					{
+						//role.ToString().aff();
+					}
+				}
+
+				/*foreach (SocketRole role in ((SocketGuildUser)message.Author).Roles)
+				{
+					Console.WriteLine(role.Name);
+				}*/
 
 				return;
 			}
@@ -874,6 +929,19 @@ namespace DiscordBot
 			}
 
 			return result;
+		}
+
+		private bool verifyAdmin(SocketMessage message)
+		{
+			if (database.idAdmin(message.Author.Id.ToString()))
+			{
+				return true;
+			}
+			else
+			{
+				message.Channel.SendMessageAsync("Wesh t'es pas admin kestu fait le fou avec moi ?");
+				return false;
+			}
 		}
 
 

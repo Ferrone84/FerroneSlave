@@ -10,24 +10,21 @@ display = ""
 
 results = cursor.execute(''' SELECT * FROM users ''')
 
+display += "```asciidoc:[users]```:"
 for result in results:
 	display += str(result)+":"
 
 results = cursor.execute(''' SELECT * FROM mangas ''')
 
+display += ":```asciidoc:[mangas]```:"
 for result in results:
 	display += str(result)+":"
 
 results = cursor.execute(''' SELECT * FROM subs ''')
 
+display += ":```asciidoc:[subs]```:"
 for result in results:
 	display += str(result)+":"
-
-
-# results = cursor.execute(''' SELECT titre FROM subs JOIN mangas ON(subs.manga=mangas.id) JOIN users ON(subs.user=users.id) WHERE pseudo='ferrone' ''')
-
-# for result in results:
-# 	display += str(result)+":"
 
 connection.close()
 
