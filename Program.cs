@@ -178,8 +178,8 @@ namespace DiscordBot
 			guild = _client.GetGuild(309407896070782976);
 
 			//Thread qui regarde les nouveaux scans
-			/*Thread thread = new Thread(getAllNewChapters);
-			thread.Start();*/
+			Thread thread = new Thread(Utils.getAllNewChapters);
+			thread.Start();
 
 			//Thread qui regarde le temps de trajets
 			//Thread traffic_thread = new Thread(fillTrafficData);

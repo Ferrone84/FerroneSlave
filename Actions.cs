@@ -270,13 +270,13 @@ namespace DiscordBot
 		}
 
 		private string los(SocketMessage message)
-		{
-			string message_lower = message.Content.ToLower();
-			
+		{			
 			if (message.Author.Id == 150338863234154496)
 				return "Luc qui casse les couilles à vouloir trigger le LOS !";
 
 			string msg = "LOS ? ";
+			string message_lower = message.Content.ToLower();
+
 			foreach (var user in Program.guild.Users)
 			{
 				foreach (var role in user.Roles)
