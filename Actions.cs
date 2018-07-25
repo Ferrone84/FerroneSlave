@@ -80,7 +80,7 @@ namespace DiscordBot
 
 		private string date(SocketMessage message)
 		{
-			string _t = "";
+			string _t = String.Empty;
 			string message_lower = message.Content.ToLower();
 
 			if (message_lower.Contains("day"))
@@ -154,7 +154,7 @@ namespace DiscordBot
 
 		private string subTo(SocketMessage message)
 		{
-			string msg = "";
+			string msg = String.Empty;
 			string message_lower = message.Content.ToLower();
 			if (message_lower.Length > 6)
 				msg = Program.database.subTo(message.Author.Id.ToString(), message_lower.Split(' ')[1]);
@@ -166,7 +166,7 @@ namespace DiscordBot
 
 		private string unsubTo(SocketMessage message)
 		{
-			string msg = "";
+			string msg = String.Empty;
 			string message_lower = message.Content.ToLower();
 			if (message_lower.Length > 8)
 				msg = Program.database.unsubTo(message.Author.Id.ToString(), message_lower.Split(' ')[1]);
@@ -178,7 +178,7 @@ namespace DiscordBot
 
 		private string subList(SocketMessage message)
 		{
-			string msg = "";
+			string msg = String.Empty;
 			string message_lower = message.Content.ToLower();
 			if (message_lower.Length > 8)
 				msg = Program.database.subList(message.Author.Id.ToString(), message_lower.Split(' ')[1]);
@@ -272,12 +272,22 @@ namespace DiscordBot
 		private string los(SocketMessage message)
 		{
 			string message_lower = message.Content.ToLower();
-			string msg = "LOS ? " + Program.mention["Bringer"] + " " + Program.mention["Renaud"] + " " + Program.mention["Dimitri"] + " " + Program.mention["Bruno"] + " " + Program.mention["Pierre"] + " " + Program.mention["Mayeul"] + " " + Program.mention["Ferrone"];
-
+			
 			if (message.Author.Id == 150338863234154496)
-				msg = "Luc qui casse les couilles a vouloir trigger le LOS !";
-			else
-				msg += " - " + message.Author.Username + " veut jouer !";
+				return "Luc qui casse les couilles à vouloir trigger le LOS !";
+
+			string msg = "LOS ? ";
+			foreach (var user in Program.guild.Users)
+			{
+				foreach (var role in user.Roles)
+				{
+					if (role.Id == 471428502621650947)
+					{
+						msg += "<@" + user.Id + "> ";
+					}
+				}
+			}
+			msg += " - " + message.Author.Username + " veut jouer !";
 
 			if (message_lower != "$los")
 			{
@@ -311,7 +321,7 @@ namespace DiscordBot
 		{
 			int it = Utils.CountIterations(message.ToString().ToLower(), "bite");
 			string pepe = "<:pepe:329281047730585601> ";
-			string msg = "";
+			string msg = String.Empty;
 			for (int i = 0; i < it; i++)
 				msg += pepe;
 

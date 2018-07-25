@@ -106,11 +106,11 @@ namespace DiscordBot
 		private ulong master_id = 293780484822138881;
 
 		private Actions actions;
-		private SocketGuild guild;
 		public static Database database;
-		private List<string> baned_people;
+		public static SocketGuild guild;
 		public static List<string> pp_songs;
-		private SortedDictionary<string, List<string>> subData;
+		public static List<string> baned_people;
+		public static SortedDictionary<string, List<string>> subData;
 		public static SortedDictionary<string, string> mangasData;
 
 		public static void Main(string[] args)
@@ -293,7 +293,9 @@ namespace DiscordBot
 				{
 					foreach (var role in user.Roles)
 					{
-						//role.ToString().aff();
+						(role.Name+" "+role.Id.ToString()).aff();
+						if (role.Name == "lolien")
+							await message.Channel.SendMessageAsync(role.Id.ToString());
 					}
 				}
 

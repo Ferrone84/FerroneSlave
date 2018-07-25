@@ -41,8 +41,8 @@ namespace DiscordBot
 		*/
 		public static string runPython(string fileName, params string[] args)
 		{
-			string result = "";
-			string arguments = "";
+			string result = String.Empty;
+			string arguments = String.Empty;
 			string file = PYTHON_DIR_PATH + fileName;
 
 			if (args.Length != 0)
@@ -143,7 +143,7 @@ namespace DiscordBot
 
 		public static string FormateSentence(string sentence)
 		{
-			string res = "";
+			string res = String.Empty;
 			string indicator = ":regional_indicator_";
 
 			for (int i = 0; i < sentence.Length; i++)
@@ -220,7 +220,7 @@ namespace DiscordBot
 
 		public static string lastChapter(string message_lower)
 		{
-			string msg = "";
+			string msg = String.Empty;
 			try
 			{
 				string manga = message_lower.Split(' ')[1];
@@ -262,7 +262,7 @@ namespace DiscordBot
 
 		public static string addManga(string message_lower)
 		{
-			string msg = "";
+			string msg = String.Empty;
 			try
 			{
 				string manga = message_lower.Split(' ')[1];
@@ -402,7 +402,7 @@ namespace DiscordBot
 
 		public static string traffic()
 		{
-			string result = "";
+			string result = String.Empty;
 			string url = "https://maps.googleapis.com/maps/api/directions/json?origin=Centre+d'Enseignement+et+de+Recherche+en+Informatique&destination=Robion&key=" + getApiKey();
 
 			WebRequest request = WebRequest.Create(url);
@@ -425,7 +425,7 @@ namespace DiscordBot
 
 		public static string imitateMangasData()
 		{
-			string result = "";
+			string result = String.Empty;
 
 			foreach (KeyValuePair<string, string> kvp in Program.mangasData)
 			{
