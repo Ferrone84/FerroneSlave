@@ -1,26 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using Discord;
-using Discord.WebSocket;
-using Discord.Commands;
-using HtmlAgilityPack;
-using Supremes;
-using System.Threading;
-using System.IO;
-using System.Net;
-using Newtonsoft.Json.Linq;
-using IronPython.Hosting;
-using Microsoft.Scripting.Hosting;
-using System.Diagnostics;
 
 
 namespace DiscordBot
 {
-	class Database
+	public class Database
 	{
 		public Database()
 		{
@@ -160,7 +145,7 @@ namespace DiscordBot
 			return false;
 		}
 
-		public List<string> display()
+		public string display()
 		{
 			return Utils.moreThanTwoThousandsChars(Utils.runPython("display.py").Replace(':', '\n'));
 		}

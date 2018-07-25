@@ -1,27 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 using Discord;
 using Discord.WebSocket;
-using Discord.Commands;
-using HtmlAgilityPack;
-using Supremes;
 using System.Threading;
-using System.IO;
-using System.Net;
-using Newtonsoft.Json.Linq;
-using IronPython.Hosting;
-using Microsoft.Scripting.Hosting;
-using System.Diagnostics;
 
 namespace DiscordBot
 {
 	public class Program
 	{
-		Dictionary<string, ulong> channels = new Dictionary<string, ulong>()
+		public static Dictionary<string, ulong> channels = new Dictionary<string, ulong>()
 		{
 			{ "general",        309407896070782976 },
 			{ "mangas",         439960408703369217 },
@@ -32,7 +21,7 @@ namespace DiscordBot
 			{ "peguts",         392118626561294346 }
 		};
 
-		Dictionary<string, string> all_actions = new Dictionary<string, string>()
+		public static Dictionary<string, string> all_actions = new Dictionary<string, string>()
 		{
 			{ "==a" , "Les commandes" },
 			{ "!ping" , "Affiche le ping du bot." },
@@ -68,7 +57,6 @@ namespace DiscordBot
 			{ "invocation" , "Idem." },
 			{ "welcome" , "Meme Resident Evil 4." },
 			{ "évidemment" , "Meme Antoine Daniel." },
-			{ "je vais chier" , "Meme South Park." },
 			{ "omae wa mou shindeiru" , "Si t'es flemmard, 'omae' suffit xD." },
 			{ "hanauta sancho" , "Le génie de Brook." },
 			{ "DETROIT SMAAAAAAAAASH" , "Cqfd." },
@@ -78,14 +66,14 @@ namespace DiscordBot
 			{ "BALDSIGNAL !!" , "Se lance quand on utilise l'émote du baldsignal !!" }
 		};
 
-		static Dictionary<string, string> pseudo = new Dictionary<string, string>()
+		public static Dictionary<string, string> pseudo = new Dictionary<string, string>()
 		{
 			{ "Ferrone",    "Ferrone" },
 			{ "Luc",        "𝓕𝓵𝓾𝓽𝓽𝓮𝓻𝓢𝓱𝔂" },
 			{ "Bruno",      "Faellyss" }
 		};
 
-		Dictionary<string, string> mention = new Dictionary<string, string>()
+		public static Dictionary<string, string> mention = new Dictionary<string, string>()
 		{
 			{ "Ferrone",    "<@293780484822138881>" },
 			{ "Luc",        "<@150338863234154496>" },
@@ -98,20 +86,32 @@ namespace DiscordBot
 			{ "Bruno",      "<@227490882033680384>" }
 		};
 
-		private const string alpha = "abcdefghijklmnopqrstuvwxyz";
-		private string flip = "(╯°□°）╯︵ ┻━┻";
-		private string unflip = "┬─┬﻿ ノ( ゜-゜ノ)";
+		public static List<string> autres = new List<string>()
+		{
+			"bite",
+			"musique de génie",
+			"Gamabunta",
+			"invocation",
+			"welcome",
+			"évidemment",
+			"evidemment",
+			"omae",
+			"sancho",
+			"detroit",
+			"smash"
+		};
 
-		private DiscordSocketClient _client;
+		public static DiscordSocketClient _client;
 		private CancellationTokenSource delay_controller;
 		private ulong master_id = 293780484822138881;
 
-		private Database database;
+		private Actions actions;
 		private SocketGuild guild;
-		private List<string> pp_songs;
+		public static Database database;
 		private List<string> baned_people;
-		private SortedDictionary<string, string> mangasData;
+		public static List<string> pp_songs;
 		private SortedDictionary<string, List<string>> subData;
+		public static SortedDictionary<string, string> mangasData;
 
 		public static void Main(string[] args)
 			=> new Program().MainAsync().GetAwaiter().GetResult();
@@ -121,32 +121,12 @@ namespace DiscordBot
 			_client = new DiscordSocketClient();
 
 			_client.Log += Log;
+			_client.Ready += ready;
 			_client.MessageReceived += MessageReceived;
 			delay_controller = new CancellationTokenSource();
-
-			string token = getToken();
-			await _client.LoginAsync(TokenType.Bot, token);
+			
+			await _client.LoginAsync(TokenType.Bot, Utils.getToken());
 			await _client.StartAsync();
-
-			//inits
-			database = new Database();
-			pp_songs = new List<string>();
-			baned_people = new List<string>();
-			guild = _client.GetGuild(309407896070782976); //WTFFFFFFFFFFFFFFFFFFFF
-			mangasData = new SortedDictionary<string, string>();
-			subData = new SortedDictionary<string, List<string>>();
-
-			//mes setups
-			setupMangasData();
-			setupPpSong();
-
-			//Thread qui regarde les nouveaux scans
-			Thread thread = new Thread(getAllNewChapters);
-			thread.Start();
-
-			//Thread qui regarde le temps de trajets
-			//Thread traffic_thread = new Thread(fillTrafficData);
-			//traffic_thread.Start();
 
 			Console.CancelKeyPress += async delegate (object sender, ConsoleCancelEventArgs e)
 			{
@@ -182,6 +162,30 @@ namespace DiscordBot
 			}
 		}
 
+		private async Task ready()
+		{
+			//inits
+			actions = new Actions();
+			database = new Database();
+			pp_songs = new List<string>();
+			baned_people = new List<string>();
+			mangasData = new SortedDictionary<string, string>();
+			subData = new SortedDictionary<string, List<string>>();
+
+			//mes setups
+			Utils.setupPpSong();
+			Utils.setupMangasData();
+			guild = _client.GetGuild(309407896070782976);
+
+			//Thread qui regarde les nouveaux scans
+			/*Thread thread = new Thread(getAllNewChapters);
+			thread.Start();*/
+
+			//Thread qui regarde le temps de trajets
+			//Thread traffic_thread = new Thread(fillTrafficData);
+			//traffic_thread.Start();
+		}
+
 		private async Task MessageReceived(SocketMessage message)
 		{
 			if (baned_people.Contains(message.Author.Username) || message.Author.IsBot)
@@ -190,8 +194,6 @@ namespace DiscordBot
 			}
 
 			string message_lower = message.Content.ToLower();
-			//Console.WriteLine("normal : "+message.Content);
-			//Console.WriteLine("lower  : "+message_lower);
 
 			if (message.Author.Id == master_id)
 			{
@@ -202,263 +204,39 @@ namespace DiscordBot
 				}
 			}
 
-			///////////////////////////////////////////////////////////////////
-			//							Les commandes
-			///////////////////////////////////////////////////////////////////
+			try
+			{
+				foreach (var action in actions.getActions)
+				{
+					if (message_lower.StartsWith(action.Item1))
+					{
+						if (action.Item1.StartsWith("!!") && !Utils.verifyAdmin(message))
+							break;
 
-			if (message_lower == "!ping")
-			{
-				string msg = "Pong! Mon ping est de : " + _client.Latency.ToString() + "ms.";
-				await message.Channel.SendMessageAsync(msg);
-			}
-			else if (message_lower.StartsWith("!date"))
-			{
-				string _t = "";
-				if (message_lower.Contains("day"))
-				{
-					_t = DateTime.Now.Day.ToString();
-				}
-				else if (message_lower.Contains("month"))
-				{
-					_t = DateTime.Now.Month.ToString();
-				}
-				else if (message_lower.Contains("year"))
-				{
-					_t = DateTime.Now.Year.ToString();
-				}
-				else if (message_lower.Contains("time"))
-				{
-					_t = DateTime.Now.TimeOfDay.ToString();
-					_t = _t.Remove(8, _t.Length - 8);
-				}
-				else
-					_t = DateTime.Now.ToString();
-				string msg = _t;
-				await message.Channel.SendMessageAsync(msg);
-			}
-			else if (SentenceContainsWord(message.ToString(), "rage") || message_lower == "!flip" || message_lower.Contains(unflip))
-			{
-				string msg = flip;
-				await message.Channel.SendMessageAsync(msg);
-			}
-			else if (message_lower == "!unflip" || message_lower.Contains(flip))
-			{
-				string msg = unflip;
-				await message.Channel.SendMessageAsync(msg);
-			}
-			else if (message_lower == "!clean")
-			{
-				string msg = "Clean en cours...";
-				for (int i = 0; i < 60; i++)
-					msg += "\n";
-				msg += "\nClean terminé.";
-				await message.Channel.SendMessageAsync(msg);
-			}
-			else if (message_lower == "!mangas")
-			{
-				var msgs = displayMangasList().Split('|');
-				foreach (string msg in msgs)
-					await message.Channel.SendMessageAsync(msg);
-			}
-			else if (message_lower == "!scans")
-			{
-				try
-				{
-					var msgs = displayCompleteMangasList().Split('|');
-					foreach (string msg in msgs)
+						string msg = action.Item2.Invoke(message);
+
+						if (message_lower.StartsWith("$"))
+							Utils.DeleteMessage(message);
+
+						if (msg.Contains("|"))
+							foreach (string ms in msg.Split('|'))
+								await message.Channel.SendMessageAsync(ms);
+						else
+							await message.Channel.SendMessageAsync(msg);
+
+						break;
+					}
+					else if (autres.Contains(action.Item1) && message_lower.Contains(action.Item1))
+					{
+						string msg = action.Item2.Invoke(message);
 						await message.Channel.SendMessageAsync(msg);
-				}
-				catch (Exception e)
-				{
-					Utils.displayException(e, "!scans");
+					}
 				}
 			}
-			else if (message_lower.StartsWith("!lastchapter"))
+			catch (Exception e)
 			{
-				string msg = lastChapter(message_lower);
-				await message.Channel.SendMessageAsync(msg);
+				Utils.displayException(e, "Main foreach actions");
 			}
-			else if (message_lower.StartsWith("!addmanga"))
-			{
-				string msg = addManga(message_lower);
-				await message.Channel.SendMessageAsync(msg);
-			}
-			else if (message_lower.StartsWith("!subto"))
-			{
-				string msg = "";
-				if (message_lower.Length > 6)
-					msg = database.subTo(message.Author.Id.ToString(), message_lower.Split(' ')[1]);
-				else
-					msg = "Il faut mettre un titre de manga. Ex : !subto one-piece";
-
-				await message.Channel.SendMessageAsync(msg);
-			}
-			else if (message_lower.StartsWith("!unsubto"))
-			{
-				string msg = "";
-				if (message_lower.Length > 8)
-					msg = database.unsubTo(message.Author.Id.ToString(), message_lower.Split(' ')[1]);
-				else
-					msg = "Il faut mettre un titre de manga. Ex : !unsubto one-piece";
-
-				await message.Channel.SendMessageAsync(msg);
-			}
-			else if (message_lower.StartsWith("!sublist"))
-			{
-				string msg = "";
-				if (message_lower.Length > 8)
-					msg = database.subList(message.Author.Id.ToString(), message_lower.Split(' ')[1]);
-				else
-					msg = database.subList(message.Author.Id.ToString());
-
-				await message.Channel.SendMessageAsync(msg);
-			}
-			else if (message_lower == "!help")
-			{
-				string msg = displayAllActions();
-				await message.Channel.SendMessageAsync(msg);
-			}
-
-
-			///////////////////////////////////////////////////////////////////
-			//							Les deletes
-			///////////////////////////////////////////////////////////////////
-
-			if (message_lower.StartsWith("$fs"))
-			{
-				DeleteMessage(message);
-				string msg = message_lower.Substring(3).ToLower();
-				if (message.Author.Id == 150338863234154496)
-					msg = FormateSentence(msg) + " by FlutterShy / Blossom / Pupute";
-				else
-					msg = FormateSentence(msg) + " by " + message.Author.Username;
-
-				await reply(message, msg);
-			}
-			else if (message_lower == "$lenny")
-			{
-				DeleteMessage(message);
-				string msg = "( ͡° ͜ʖ ͡°)";
-				await message.Channel.SendMessageAsync(msg);
-			}
-			else if (message_lower == "$popopo")
-			{
-				DeleteMessage(message);
-				string msg = "https://cdn.discordapp.com/attachments/346760327540506643/353847873458274304/popopo.png";
-				await message.Channel.SendMessageAsync(msg);
-			}
-			else if (message_lower == "$ken")
-			{
-				DeleteMessage(message);
-				string msg = "OMAE WA MOU ... SHINDEIRU !";
-				await message.Channel.SendMessageAsync(msg);
-			}
-			else if (message_lower == "$amaury meme")
-			{
-				DeleteMessage(message);
-				string msg = "https://cdn.discordapp.com/attachments/309407896070782976/353833262273134592/Sans_titre.png";
-				await message.Channel.SendMessageAsync(msg);
-			}
-			else if (message_lower == "$mytho ultime")
-			{
-				DeleteMessage(message);
-				string msg = "https://cdn.discordapp.com/attachments/346760327540506643/402253939573129217/amaury_ultime.jpg";
-				await message.Channel.SendMessageAsync(msg);
-			}
-			else if (message_lower.StartsWith("$los"))
-			{
-				DeleteMessage(message);
-				string msg = "LOS ? " + mention["Bringer"] + " " + mention["Renaud"] + " " + mention["Dimitri"] + " " + mention["Bruno"] + " " + mention["Pierre"] + " " + mention["Mayeul"] + " " + mention["Ferrone"];
-				if (message.Author.Id == 150338863234154496)
-					msg = "Luc qui casse les couilles a vouloir trigger le LOS !";
-				else
-					msg += " - " + message.Author.Username + " veut jouer !";
-
-				if (message_lower != "$los")
-				{
-					msg += " [" + message_lower.Substring(5) + "]";
-				}
-				await message.Channel.SendMessageAsync(msg);
-			}
-			else if (message_lower == "$boulot")
-			{
-				DeleteMessage(message);
-				string msg = traffic();
-				await message.Channel.SendMessageAsync(msg);
-			}
-			else if (message_lower == "$pp")
-			{
-				DeleteMessage(message);
-				string msg = randomPpSong();
-				await message.Channel.SendMessageAsync(msg);
-			}
-			else if (message_lower == ("$fap"))
-			{
-				DeleteMessage(message);
-				string msg = "https://giphy.com/gifs/fap-Bk2NzCbwFH6sE";
-				await message.Channel.SendMessageAsync(msg);
-			}
-
-
-			///////////////////////////////////////////////////////////////////
-			//							  Autres
-			///////////////////////////////////////////////////////////////////
-
-			if (message_lower.Contains("bite"))
-			{
-				int it = CountIterations(message.ToString().ToLower(), "bite");
-				string pepe = "<:pepe:329281047730585601> ";
-				string msg = "";
-				for (int i = 0; i < it; i++)
-					msg += pepe;
-				await message.Channel.SendMessageAsync(msg);
-			}
-			if (message_lower.Contains("musique de génie"))
-			{
-				string msg = "https://www.youtube.com/watch?v=kXYiU_JCYtU&index=146&list=PLi7ipd_Aw87Xv1s_L8p1NZ6cg9Ny0dQEi&ab_channel=LinkinPark";
-				await message.Channel.SendMessageAsync(msg);
-			}
-			if (message.Content.Contains("Gamabunta"))
-			{
-				string msg = "Kuchiyose no jutsu ! https://vignette3.wikia.nocookie.net/naruto/images/8/84/Gamabunta.png/revision/latest?cb=20160623114719";
-				await message.Channel.SendMessageAsync(msg);
-			}
-			if (message_lower.Contains("invocation"))
-			{
-				string msg = "Kuchiyose no jutsu !";
-				await message.Channel.SendMessageAsync(msg);
-			}
-			if (message_lower.Contains("welcome"))
-			{
-				string msg = "https://www.youtube.com/watch?v=o0kGvgXmmgk&ab_channel=DiegoSousa";
-				await message.Channel.SendMessageAsync(msg);
-			}
-			if (message_lower.Contains("évidemment") || message_lower.Contains("evidemment"))
-			{
-				string msg = "https://www.youtube.com/watch?v=A4-MlnvXo2I&ab_channel=FansDesRoisD%27Internet";
-				await message.Channel.SendMessageAsync(msg);
-			}
-			if (message_lower.Contains("je vais chier") || message_lower.Contains("jvais chier") || message_lower.Contains("va chier"))
-			{
-				string msg = "http://ci.memecdn.com/2675825.jpg";
-				await message.Channel.SendMessageAsync(msg);
-			}
-			if (message_lower.Contains("omae"))
-			{
-				string msg = "NANIIII !!??";
-				await message.Channel.SendMessageAsync(msg);
-			}
-			if (message_lower.Contains("sancho"))
-			{
-				string msg = "https://cdn.discordapp.com/attachments/346760327540506643/397856433145905156/yahazu_giri.png";
-				await message.Channel.SendMessageAsync(msg);
-			}
-			if (message_lower.Contains("detroit") || message_lower.Contains("smash"))
-			{
-				string msg = "https://giphy.com/gifs/hero-smash-boku-XE8j547LpglrO";
-				await message.Channel.SendMessageAsync(msg);
-			}
-
 
 			///////////////////////////////////////////////////////////////////
 			//							  Automatique
@@ -476,48 +254,9 @@ namespace DiscordBot
 			}
 
 			///////////////////////////////////////////////////////////////////
-			//							En construction
-			///////////////////////////////////////////////////////////////////
-			/*if (message.Channel.ToString().Contains("@") && message.Channel.ToString().Contains("#"))
-			{
-				//await message.Channel.SendMessageAsync("arrête de m'embetter");
-				//await message.Channel.SendMessageAsync(FormateSentence("salut ca va"));
-			}*/
-
-
-
-			///////////////////////////////////////////////////////////////////
-			//							  Partie Admin
+			//							  Debug Zone
 			///////////////////////////////////////////////////////////////////
 
-
-			if (message_lower.StartsWith("!!adduser") && verifyAdmin(message))
-			{
-				string msg = String.Empty;
-				if (message_lower.Length <= "!!adduser".Length)
-				{
-					await message.Channel.SendMessageAsync("Il faut rentrer des arguments. Ex : !!adduser 293780484822138881 ferrone nico");
-					return;
-				}
-				try
-				{
-					var args = message.Content.Split(' ');
-					database.addUser(args[1], args[2], args[3]);
-				}
-				catch (Exception e)
-				{
-					Utils.displayException(e, "!!adduser");
-					await message.Channel.SendMessageAsync("Il faut rentrer des arguments. Ex : !!adduser 293780484822138881 ferrone nico");
-				}
-			}
-			else if (message_lower.StartsWith("!!d") && verifyAdmin(message))
-			{
-				foreach (var elem in database.display())
-					await message.Channel.SendMessageAsync(elem);
-			}
-
-
-			//debug zone
 			if (message_lower == "!d")
 			{
 				/*string msg = "";
@@ -547,7 +286,7 @@ namespace DiscordBot
 					await message.Channel.SendMessageAsync(a);*/
 				//"bbb".aff();
 
-				SocketGuild guild = _client.GetGuild(309407896070782976);
+				//SocketGuild guild = _client.GetGuild(309407896070782976);
 				guild.ToString().aff();
 				var users = guild.Users;
 				foreach (var user in users)
@@ -572,389 +311,11 @@ namespace DiscordBot
 			System.IO.File.AppendAllText(Utils.LOGS_FILE_NAME, logprint + "\n");
 		}
 
-		private void sendMessageTo(ulong channel, string message)
-		{
-			try
-			{
-				((SocketTextChannel)_client.GetChannel(channel)).SendMessageAsync(message);
-			}
-			catch (Exception e)
-			{
-				Utils.displayException(e, "Impossible to send message, sendMessageTo(ulong channel, string message)");
-			}
-		}
-
-		private async Task reply(SocketMessage message, string msg)
-		{
-			try
-			{
-				await message.Channel.SendMessageAsync(msg);
-			}
-			catch (Exception e)
-			{
-				Utils.displayException(e, "Impossible to send message, reply(SocketMessage message, string msg)");
-				await message.Channel.SendMessageAsync("Le message est trop long <3");
-			}
-		}
-
-		private void fillTrafficData()
-		{
-			var time = DateTime.Now;
-			Console.WriteLine("fillTrafficData (" + time + ")");
-
-			string duration = traffic();
-			string day = time.DayOfWeek.ToString();
-			string hour = time.Hour.ToString() + "h" + time.Minute.ToString();
-			string result = day + ":" + hour + "=" + duration + "\n";
-
-			if (Int32.Parse(time.Hour.ToString()) > 8 && Int32.Parse(time.Hour.ToString()) < 21)
-				System.IO.File.AppendAllText(Utils.TRAJETS_FILE_NAME, result);
-
-			var now = DateTime.Now - time;
-			Console.WriteLine("fill traffic data done. (" + DateTime.Now + ") [" + now + "]");
-
-			Thread.Sleep(1800000);      //30min
-			fillTrafficData();
-		}
-
-		private string randomPpSong()
-		{
-			Random r = new Random();
-			int rInt = r.Next(0, pp_songs.Count - 1);
-			var result = pp_songs[rInt];
-
-			return result;
-		}
-
-		private string traffic()
-		{
-			string result = "";
-			string url = "https://maps.googleapis.com/maps/api/directions/json?origin=Centre+d'Enseignement+et+de+Recherche+en+Informatique&destination=Robion&key=" + getApiKey();
-
-			WebRequest request = WebRequest.Create(url);
-			WebResponse response = request.GetResponse();
-			Stream data = response.GetResponseStream();
-			StreamReader reader = new StreamReader(data);
-
-			// json-formatted string from maps api
-			string responseFromServer = reader.ReadToEnd();
-			//Console.WriteLine(responseFromServer);
-			dynamic details = JObject.Parse(responseFromServer);
-			Console.WriteLine(details.routes[0].legs[0].duration.text);
-			var duration = details.routes[0].legs[0].duration.text;
-			result = (string)duration;
-
-			response.Close();
-
-			return result;
-		}
-
-		private string lastChapter(string message_lower)
-		{
-			string msg = "";
-			try
-			{
-				string manga = message_lower.Split(' ')[1];
-				msg = getLastChapterOf(manga);
-			}
-			catch (ArgumentOutOfRangeException)
-			{
-				msg = "Ce manga n'existe pas. Le nom doit être de la forme : one-piece";
-			}
-			catch (Exception)
-			{
-				msg = "La commande est mal écrite. Elle doit être de la forme : !lastchapter one-piece";
-			}
-			return msg;
-		}
-
-		private string addManga(string message_lower)
-		{
-			string msg = "";
-			try
-			{
-				string manga = message_lower.Split(' ')[1];
-				if (mangasData.ContainsKey(manga))
-				{
-					msg = "Ce manga est déjà dans la liste poto ! :)";
-					return msg;
-				}
-				string chapter = getLastChapterOf(manga);
-
-				string result = "\n" + manga + "|" + chapter;
-				System.IO.File.AppendAllText(Utils.MANGASDATA_FILE_NAME, result);
-				setupMangasData();
-
-				msg = "Manga '" + manga + "' ajouté à la liste.";
-			}
-			catch (ArgumentOutOfRangeException)
-			{
-				msg = "Ce manga n'existe pas. Le nom doit être de la forme : one-piece (minuscules séparées par un tiret)";
-			}
-			catch (Exception)
-			{
-				msg = "La commande est mal écrite. Elle doit être de la forme : !addmanga one-piece";
-			}
-			return msg;
-		}
-
-		private void getAllNewChapters()
-		{
-			var time = DateTime.Now;
-			Console.WriteLine("getAllNewChapters (" + time + ")");
-			foreach (KeyValuePair<string, string> kvp in mangasData)
-			{
-				try
-				{
-					string chapter = getLastChapterOf(kvp.Key);
-					if (kvp.Value != chapter)
-					{
-						string toWrite = imitateMangasData();
-						int pos = toWrite.IndexOf(kvp.Key) + kvp.Key.Length + 1;
-						int nextLinePos = toWrite.IndexOf('\n', pos);
-
-						if (nextLinePos == -1)
-							nextLinePos = toWrite.Length;
-
-						toWrite = toWrite.Remove(pos, nextLinePos - pos);
-						toWrite = toWrite.Insert(pos, chapter);
-
-						System.IO.File.WriteAllText(Utils.MANGASDATA_FILE_NAME, toWrite);
-
-						string msg = "Nouveau scan trouvé pour " + kvp.Key + " : \n\t" + chapter;
-						if (!chapter.Contains("VUS") && !chapter.Contains("JAP") && !chapter.Contains("SPOILER") && !chapter.Contains("RAW"))
-							sendMessageTo(channels["mangas"], msg);
-
-						setupMangasData();
-					}
-				}
-				catch (Exception e)
-				{
-					Utils.displayException(e, "Exception on getAllNewChapters()");
-				}
-			}
-			var now = DateTime.Now - time;
-			Console.WriteLine("search done. (" + DateTime.Now + ") [" + now + "]");
-
-			Thread.Sleep(10800000); //3h
-									//Thread.Sleep(1800000);		//30min
-			getAllNewChapters();
-		}
-
-		private string imitateMangasData()
-		{
-			string result = "";
-
-			foreach (KeyValuePair<string, string> kvp in mangasData)
-			{
-				result += kvp.Key + "|" + kvp.Value + "\n";
-			}
-
-			return result.Substring(0, result.Length - 1);
-		}
-
-		private string getLastChapterOf(string manga)
-		{
-			string url = "http://www.japscan.cc/mangas/" + manga;
-
-			var document = Dcsoup.Parse(new Uri(url), 30000);
-			var divChaptersList = document.Select("div[id=liste_chapitres]");
-
-			var firstChapterCatch = divChaptersList.Select("ul").Select("li").Select("a")[0];
-			var firstChapterName = firstChapterCatch.Text;
-			var link = "http:" + firstChapterCatch.ToString().Split('\"')[1];
-			var version = "(VF)";
-			try
-			{
-				version = divChaptersList.Select("ul").Select("li").Select("span")[0].Text;
-			}
-			catch (ArgumentOutOfRangeException) { /*displayException(e, "ArgumentOutOfRangeException, getLastChapterOf(string manga)");*/ }
-
-			if (version == "(RAW)")
-				version = "(JAP)";
-
-			return firstChapterName + " **" + version + "** => <" + link + ">";
-		}
-
-		private void setupMangasData()
-		{
-			try
-			{
-				mangasData = new SortedDictionary<string, string>();
-				string[] lines = System.IO.File.ReadAllLines(Utils.MANGASDATA_FILE_NAME);
-				foreach (string line in lines)
-				{
-					var data = line.Split('|');
-					var manga = data[0];
-					var content = data[1];
-
-					mangasData.Add(manga, content);
-				}
-			}
-			catch (Exception e)
-			{
-				Utils.displayException(e, "Exception on setupMangasData()");
-			}
-		}
-
-		private void setupPpSong()
-		{
-			string[] lines = System.IO.File.ReadAllLines(Utils.PP_FILE_NAME);
-			foreach (string line in lines)
-			{
-				pp_songs.Add(line);
-			}
-		}
-
 		private Task Log(LogMessage msg)
 		{
 			Console.WriteLine(msg.ToString());
 
 			return Task.CompletedTask;
-		}
-
-		private string GetPing(DateTime old)
-		{
-			return ((long)((TimeSpan)(DateTime.Now - old)).TotalMilliseconds).ToString();
-		}
-
-		private int CountIterations(string sentence, string word)
-		{
-			int it = 0;
-			string[] split = sentence.Split(' ');
-			for (int i = 0; i < split.Length; i++)
-			{
-				if (split[i].Contains(word))
-					it++;
-			}
-
-			return it;
-		}
-
-		private bool SentenceContainsWord(string sentence, string word)
-		{
-			string[] split = sentence.Split(' ');
-			for (int i = 0; i < split.Length; i++)
-			{
-				if (split[i] == word)
-					return true;
-			}
-			return false;
-		}
-
-		private string FormateSentence(string sentence)
-		{
-			string res = "";
-			string indicator = ":regional_indicator_";
-
-			for (int i = 0; i < sentence.Length; i++)
-			{
-
-				if (sentence[i] == ' ')
-					res += "     ";
-				else if (alpha.Contains(sentence[i]))
-					res += indicator + sentence[i] + ": ";
-				else
-					res += sentence[i] + " ";
-			}
-
-			return res;
-		}
-
-		private async void DeleteMessage(SocketMessage message)
-		{
-			try
-			{
-				await message.DeleteAsync();
-			}
-			catch (Exception e)
-			{
-				Utils.displayException(e, "DeleteException on DeleteMessage(SocketMessage message)");
-			}
-		}
-
-		private string displayAllActions()
-		{
-			string result = "Voici toutes les options du bot par catégorie :\n";
-			foreach (KeyValuePair<string, string> entry in all_actions)
-			{
-				if (entry.Key.StartsWith("=="))
-					result += "\n[" + entry.Value + "]\n";
-				else
-					result += "\t - " + entry.Key + " : " + entry.Value + "\n";
-			}
-			return result;
-		}
-
-		private string displayAllTags()
-		{
-			string result = "Voici tous les tags :\n";
-			foreach (KeyValuePair<string, string> entry in mention)
-			{
-				result += "\t - " + entry.Key + " : " + entry.Value + "\n";
-			}
-			return result;
-		}
-
-		private string displayMangasList()
-		{
-			int count = 0, number = 1;
-			string result = "Voici les mangas qui sont check avec le web parser :\n";
-			foreach (KeyValuePair<string, string> kvp in mangasData)
-			{
-				result += "- " + kvp.Key + " (**" + number + "**)\n";
-				number++;
-				if (count++ >= 30)
-				{
-					count = 0;
-					result += "|\n";
-				}
-			}
-			return result;
-		}
-
-		private string displayCompleteMangasList()
-		{
-			int count = 0;
-			string result = "Voici, pour chaque manga, son dernier scan :\n\n";
-			foreach (KeyValuePair<string, string> kvp in mangasData)
-			{
-				var kvpValue = kvp.Value.Split(new[] { " => " }, StringSplitOptions.None);
-				result += "```asciidoc\n[" + kvp.Key + "]```" + kvpValue[0] + "\n" + kvpValue[1] + "\n\n";
-				if (count++ >= 10)
-				{
-					count = 0;
-					result += "|\n.";
-				}
-			}
-
-			return result;
-		}
-
-		private bool verifyAdmin(SocketMessage message)
-		{
-			if (database.idAdmin(message.Author.Id.ToString()))
-			{
-				return true;
-			}
-			else
-			{
-				message.Channel.SendMessageAsync("Wesh t'es pas admin kestu fait le fou avec moi ?");
-				return false;
-			}
-		}
-
-
-		private string getToken()
-		{
-			string[] lines = System.IO.File.ReadAllLines(Utils.TOKEN_FILE_NAME);
-			return lines[0];
-		}
-
-		private string getApiKey()
-		{
-			string[] lines = System.IO.File.ReadAllLines(Utils.TOKEN_FILE_NAME);
-			return lines[1];
 		}
 	}
 }
