@@ -263,11 +263,14 @@ namespace DiscordBot
 				sendMessageTo(channels["debug"], msg);
 				Console.WriteLine(msg);*/
 
-				/*database.init();
-				database.loadMangas(mangasData);
+				/*
+				database.init();
+				database.loadUsers();
+				database.loadMangas();
 				database.addUser("293780484822138881", "ferrone", "nico", 1).aff();
 				database.addUser("150338863234154496", "fluttershy", "luc", 0).aff();
-				database.subTo("150338863234154496", "one-piece").aff();*/
+				database.subTo("150338863234154496", "one-piece").aff();
+				*/
 
 				//database.addUser("442744684646", "fereffzsedffrone", "nddcico", 0).aff();
 				//database.get("users").aff();
@@ -287,17 +290,26 @@ namespace DiscordBot
 				//"bbb".aff();
 
 				//SocketGuild guild = _client.GetGuild(309407896070782976);
-				guild.ToString().aff();
+				/*guild.ToString().aff();
 				var users = guild.Users;
 				foreach (var user in users)
 				{
-					foreach (var role in user.Roles)
+					if (user.Id == master_id)
 					{
-						(role.Name+" "+role.Id.ToString()).aff();
-						if (role.Name == "lolien")
+						foreach (var role in user.Roles)
+						{
+							(role.Name + " " + role.Id.ToString()).aff();
 							await message.Channel.SendMessageAsync(role.Id.ToString());
+						}
 					}
-				}
+				}*/
+
+				/*foreach (var role in guild.Roles)
+				{
+					(role.Name + " " + role.Id.ToString()).aff();
+					await message.Channel.SendMessageAsync((role.Name + " " + role.Id.ToString()));
+				}*/
+
 
 				/*foreach (SocketRole role in ((SocketGuildUser)message.Author).Roles)
 				{

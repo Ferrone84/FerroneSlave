@@ -18,9 +18,9 @@ namespace DiscordBot
 		}
 
 		//à terme ça lancera un script python qui lira le fichier data.txt
-		public void loadMangas(SortedDictionary<string, string> mangasData)
+		public void loadMangas()
 		{
-			foreach (KeyValuePair<string, string> kvp in mangasData)
+			foreach (KeyValuePair<string, string> kvp in Program.mangasData)
 			{
 				string query = "INSERT INTO mangas (titre, scan) VALUES (?,?)".Replace(' ', ':');
 				string values = kvp.Key + ": "/* + kvp.Value*/;
@@ -28,8 +28,44 @@ namespace DiscordBot
 			}
 		}
 
+		public void loadUsers()
+		{
+			var users = Program.guild.Users;
+
+			foreach (var user in users)
+			{
+				if (!user.IsBot)
+				{
+					short admin = 0;
+
+					foreach (var role in user.Roles)
+					{
+						if (role.Id == 328899154887835678)
+						{
+							admin = 1;
+							break;
+						}
+					}
+					string username = user.Username.Replace(' ', '-');
+
+					if (user.Id == 150338863234154496)
+						username = "Fluttershy";
+
+					try
+					{
+						addUser(user.Id.ToString(), username, "a", admin).aff();
+					}
+					catch (Exception e)
+					{
+						Utils.displayException(e, "Database adduser");
+					}
+				}
+			}
+		}
+
 		public string addUser(string uid, string pseudo, string prenom = "", short admin = 0)
 		{
+			(uid + " " + pseudo + " " + prenom + " " + admin).aff();
 			string query = "INSERT INTO users (uid, pseudo, prenom, admin) VALUES (?,?,?,?)".Replace(' ', ':');
 			string values = uid + ":" + pseudo + ":" + prenom + ":" + admin;
 
@@ -121,7 +157,7 @@ namespace DiscordBot
 					foreach (var manga in mangas)
 						result += "\t - " + manga + "\n";
 				}
-				
+
 				return result;
 			}
 			else

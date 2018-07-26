@@ -10,7 +10,7 @@ cursor = connection.cursor()
 
 cursor.execute('''DROP TABLE IF EXISTS users''')
 cursor.execute('''CREATE TABLE users
-			  (id INTEGER PRIMARY KEY AUTOINCREMENT, uid INTEGER, pseudo varchar, prenom varchar, admin boolean)''')
+			  (id INTEGER PRIMARY KEY AUTOINCREMENT, uid INTEGER NOT NULL UNIQUE, pseudo varchar, prenom varchar, admin boolean)''')
 
 cursor.execute('''DROP TABLE IF EXISTS mangas''')
 cursor.execute('''CREATE TABLE mangas

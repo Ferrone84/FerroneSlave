@@ -30,7 +30,7 @@ namespace DiscordBot
 		public static void displayException(Exception e, string message = "Error")
 		{
 			Console.WriteLine(message + " : \n" + e.Message + "\n");
-			Console.WriteLine(e.StackTrace);
+			Console.WriteLine(e.StackTrace + "\n");
 		}
 
 
