@@ -65,7 +65,6 @@ namespace DiscordBot
 
 		public string addUser(string uid, string pseudo, string prenom = "", short admin = 0)
 		{
-			(uid + " " + pseudo + " " + prenom + " " + admin).aff();
 			string query = "INSERT INTO users (uid, pseudo, prenom, admin) VALUES (?,?,?,?)".Replace(' ', ':');
 			string values = uid + ":" + pseudo + ":" + prenom + ":" + admin;
 
@@ -184,6 +183,27 @@ namespace DiscordBot
 		public string display()
 		{
 			return Utils.moreThanTwoThousandsChars(Utils.runPython("display.py").Replace(':', '\n'));
+		}
+
+		public List<ulong> getSubs(string manga)
+		{
+			string mangaId = makeQuery("SELECT id FROM mangas WHERE titre=?", manga);
+			if (mangaId.Equals(String.Empty))
+				throw new Exception("getSub(string manga) : Le manga '" + manga + "' n'existe pas :/");
+
+			List<ulong> users = new List<ulong>();
+			mangaId = Utils.onlyKeepDigits(mangaId);
+
+			string result = makeQuery("SELECT uid FROM subs JOIN users ON(subs.user=users.id) WHERE subs.manga=?", mangaId);
+			if (result == String.Empty)
+				return users;
+
+			foreach (string uid in result.Split('\n'))
+			{
+				users.Add(Convert.ToUInt64(Utils.onlyKeepDigits(uid)));
+			}
+
+			return users;
 		}
 
 

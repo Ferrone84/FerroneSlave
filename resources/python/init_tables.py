@@ -14,7 +14,7 @@ cursor.execute('''CREATE TABLE users
 
 cursor.execute('''DROP TABLE IF EXISTS mangas''')
 cursor.execute('''CREATE TABLE mangas
-			  (id INTEGER PRIMARY KEY AUTOINCREMENT, titre varchar, scan varchar)''')
+			  (id INTEGER PRIMARY KEY AUTOINCREMENT, titre varchar NOT NULL UNIQUE, scan varchar)''')
 
 cursor.execute('''DROP TABLE IF EXISTS subs''')
 cursor.execute('''CREATE TABLE subs

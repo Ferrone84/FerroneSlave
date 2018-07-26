@@ -326,9 +326,17 @@ namespace DiscordBot
 
 						System.IO.File.WriteAllText(Utils.MANGASDATA_FILE_NAME, toWrite);
 
+						string subs = String.Empty;
+						var users = Program.database.getSubs(kvp.Key);
+
+						foreach (var user in users)
+						{
+							subs += "<@" + user + "> ";
+						}
+
 						string msg = "Nouveau scan trouvé pour " + kvp.Key + " : \n\t" + chapter;
 						if (!chapter.Contains("VUS") && !chapter.Contains("JAP") && !chapter.Contains("SPOILER") && !chapter.Contains("RAW"))
-							sendMessageTo(Program.channels["mangas"], msg);
+							sendMessageTo(Program.channels["mangas"], msg + " " + subs);
 
 						setupMangasData();
 					}

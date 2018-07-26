@@ -33,6 +33,9 @@ namespace DiscordBot
 			{ "!scans" , "Affiche le dernier scan pour chaque mangas traités." },
 			{ "!lastchapter" , "Affiche le dernier scan pour le manga en paramètre. (!lastchapter one-piece)" },
 			{ "!addmanga" , "Ajoute le manga en paramètre à la liste. (!addmanga one-piece)" },
+			{ "!subto", "Permet de s'abonner au manga précisé. (!subto one-piece)" },
+			{ "!unsubto", "Permet de se désabonner du manga précisé. (!unsubto one-piece)" },
+			{ "!sublist", "Affiche la liste de tous les abonnements aux mangas." },
 			{ "!help" , "Affiche toutes les options." },
 
 			{ "==b" , "Les commandes admin" },
@@ -262,7 +265,7 @@ namespace DiscordBot
 				/*string msg = "";
 				sendMessageTo(channels["debug"], msg);
 				Console.WriteLine(msg);*/
-
+				
 				/*
 				database.init();
 				database.loadUsers();
@@ -271,50 +274,6 @@ namespace DiscordBot
 				database.addUser("150338863234154496", "fluttershy", "luc", 0).aff();
 				database.subTo("150338863234154496", "one-piece").aff();
 				*/
-
-				//database.addUser("442744684646", "fereffzsedffrone", "nddcico", 0).aff();
-				//database.get("users").aff();
-				/*database.get("mangas").aff();
-				database.loadMangas(mangasData);
-				database.get("mangas").aff();*/
-				/*database.subTo("293780484822138881", "one-piece").aff();
-				"a".aff();
-				database.subTo("293780484822138881", "one-piecee").aff();
-				"b".aff();
-				database.subTo("455645545545455242", "one-piece").aff();
-				"c".aff();
-				database.subTo("293780484822138881", "one-piece").aff();*/
-				//"aaa".aff();
-				/*foreach(var a in database.display())
-					await message.Channel.SendMessageAsync(a);*/
-				//"bbb".aff();
-
-				//SocketGuild guild = _client.GetGuild(309407896070782976);
-				/*guild.ToString().aff();
-				var users = guild.Users;
-				foreach (var user in users)
-				{
-					if (user.Id == master_id)
-					{
-						foreach (var role in user.Roles)
-						{
-							(role.Name + " " + role.Id.ToString()).aff();
-							await message.Channel.SendMessageAsync(role.Id.ToString());
-						}
-					}
-				}*/
-
-				/*foreach (var role in guild.Roles)
-				{
-					(role.Name + " " + role.Id.ToString()).aff();
-					await message.Channel.SendMessageAsync((role.Name + " " + role.Id.ToString()));
-				}*/
-
-
-				/*foreach (SocketRole role in ((SocketGuildUser)message.Author).Roles)
-				{
-					Console.WriteLine(role.Name);
-				}*/
 
 				return;
 			}
