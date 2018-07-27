@@ -297,14 +297,28 @@ namespace DiscordBot
 
 		public static string displayAllActions()
 		{
+			string type = String.Empty;
+			string typeSave = String.Empty;
 			string result = "Voici toutes les options du bot par catégorie :\n";
-			foreach (KeyValuePair<string, string> entry in Program.all_actions)
+
+			foreach (var action in Program.actions.getActions)
 			{
-				if (entry.Key.StartsWith("=="))
-					result += "\n[" + entry.Value + "]\n";
-				else
-					result += "\t - " + entry.Key + " : " + entry.Value + "\n";
+				if (action.Item2 == String.Empty) { continue; }
+
+				if (action.Item1.StartsWith("!!")) { type = "Les Commandes admin"; }
+				else if (action.Item1.StartsWith("!")) { type = "Les Commandes"; }
+				else if (action.Item1.StartsWith("$")) { type = "Les Deletes"; }
+				else { type = "Autres"; }
+
+				if (type != typeSave)
+				{
+					typeSave = type;
+					result += "\n[" + type + "]\n";
+				}
+
+				result += "\t - " + action.Item1 + " : " + action.Item2 + "\n";
 			}
+
 			return result;
 		}
 

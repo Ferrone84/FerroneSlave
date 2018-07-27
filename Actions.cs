@@ -9,63 +9,63 @@ namespace DiscordBot
 {
 	public class Actions
 	{
-		private List<Tuple<string, Func<SocketMessage, string>>> actions;
+		private List<Tuple<string, string, Func<SocketMessage, string>>> actions;
 
 		public Actions()
 		{
-			actions = new List<Tuple<string, Func<SocketMessage, string>>>();
+			actions = new List<Tuple<string, string, Func<SocketMessage, string>>>();
 
-			add("!ping", ping);
-			add("!date", date);
-			add("!flip", flip);
-			add(Utils.unflip, flip);
-			add("!unflip", unflip);
-			add(Utils.flip, unflip);
-			add("!clean", clean);
-			add("!mangas", mangas);
-			add("!scans", scans);
-			add("!lastchapter", lastChapter);
-			add("!addmanga", addManga);
-			add("!subto", subTo);
-			add("!unsubto", unsubTo);
-			add("!sublist", subList);
-			add("!help", help);
+			add("!ping", "Affiche le ping du bot.", ping);
+			add("!date", "Affiche la date.", date);
+			add("!flip", "Lance une table.", flip);
+			add(Utils.unflip, "", flip);
+			add("!unflip", "Replace une table.", unflip);
+			add(Utils.flip, "", unflip);
+			add("!clean", "Clean l'espace de message.", clean);
+			add("!mangas", "Affiche la liste des mangas traités.", mangas);
+			add("!scans", "Affiche le dernier scan pour chaque mangas traités.", scans);
+			add("!lastchapter", "Affiche le dernier scan pour le manga en paramètre. (!lastchapter one-piece)", lastChapter);
+			add("!addmanga", "Ajoute le manga en paramètre à la liste. (!addmanga one-piece)", addManga);
+			add("!subto", "Permet de s'abonner au manga précisé. (!subto one-piece)", subTo);
+			add("!unsubto", "Permet de se désabonner du manga précisé. (!unsubto one-piece)", unsubTo);
+			add("!sublist", "Affiche la liste de tous les abonnements aux mangas.", subList);
+			add("!help", "Affiche toutes les options.", help);
 
-			add("!!d", displayBdd);
-			add("!!adduser", addUser);
-			add("!!savebdd", saveBdd);
-			add("!!restbdd", restBdd);
+			add("!!d", "Affiche la bdd.", displayBdd);
+			add("!!adduser", "Ajoute un utilisateur à la bdd.", addUser);
+			add("!!savebdd", "Sauvegarde la bdd.", saveBdd);
+			add("!!restbdd", "Restaure la bdd.", restBdd);
 
-			add("$fs", fs);
-			add("$lenny", lenny);
-			add("$popopo", popopo);
-			add("$ken", ken);
-			add("$amaury meme", amauryMeme);
-			add("$mytho ultime", mythoUltime);
-			add("$los", los);
-			add("$boulot", boulot);
-			add("$pp", pp);
-			add("$fap", fap);
+			add("$fs", "Formate la phrase qui suit avec de jolies lettres.", fs);
+			add("$lenny", "Affiche le meme 'lenny'.", lenny);
+			add("$popopo", "Affiche le meme 'popopo'.", popopo);
+			add("$ken", "Tu ne le sais pas, mais tu es déjà mort.", ken);
+			add("$amaury meme", "Tout le monde sait ce que c'est.", amauryMeme);
+			add("$mytho ultime", "El mytho ultima.", mythoUltime);
+			add("$los", "Trigger la dreamteam de LOS !!", los);
+			add("$boulot", "", boulot);
+			add("$pp", "Random PP Song", pp);
+			add("$fap", "Si t'aime te fap ;)", fap);
 
-			add("bite", bite);
-			add("musique de génie", musiqueGenie);
-			add("gamabunta", gamabunta);
-			add("invocation", invocation);
-			add("welcome", welcome);
-			add("évidemment", evidemment);
-			add("evidemment", evidemment);
-			add("omae", omae);
-			add("sancho", sancho);
-			add("detroit", detroitSmash);
-			add("smash", detroitSmash);
+			add("bite", "Si ta phrase contient une bite ou plusieurs alors PEPE*biteNumber.", bite);
+			add("musique de génie", "Le jour où tu veux écouter de la vrai musique.", musiqueGenie);
+			add("gamabunta", "Meme naruto du BOSS.", gamabunta);
+			add("invocation", "Meme naruto.", invocation);
+			add("welcome", "Meme Resident Evil 4.", welcome);
+			add("évidemment", "Meme Antoine Daniel.", evidemment);
+			add("evidemment", "Meme Antoine Daniel.", evidemment);
+			add("omae", "NANI !?", omae);
+			add("sancho", "Le génie de Brook.", sancho);
+			add("detroit", "Cqfd.", detroitSmash);
+			add("smash", "Cqfd.", detroitSmash);
 		}
 
-		private void add(string command, Func<SocketMessage, string> method)
+		private void add(string command, string description, Func<SocketMessage, string> method)
 		{
-			this.actions.Add(new Tuple<string, Func<SocketMessage, string>>(command, method));
+			this.actions.Add(new Tuple<string, string, Func<SocketMessage, string>>(command, description, method));
 		}
 
-		public List<Tuple<string, Func<SocketMessage, string>>> getActions
+		public List<Tuple<string, string, Func<SocketMessage, string>>> getActions
 		{
 			get { return actions; }
 		}

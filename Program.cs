@@ -21,54 +21,6 @@ namespace DiscordBot
 			{ "peguts",         392118626561294346 }
 		};
 
-		public static Dictionary<string, string> all_actions = new Dictionary<string, string>()
-		{
-			{ "==a" , "Les commandes" },
-			{ "!ping" , "Affiche le ping du bot." },
-			{ "!date" , "Affiche la date." },
-			{ "!flip" , "Lance une table." },
-			{ "!unflip" , "Replace une table." },
-			{ "!clean" , "Clean l'espace de message." },
-			{ "!mangas" , "Affiche la liste des mangas traités." },
-			{ "!scans" , "Affiche le dernier scan pour chaque mangas traités." },
-			{ "!lastchapter" , "Affiche le dernier scan pour le manga en paramètre. (!lastchapter one-piece)" },
-			{ "!addmanga" , "Ajoute le manga en paramètre à la liste. (!addmanga one-piece)" },
-			{ "!subto", "Permet de s'abonner au manga précisé. (!subto one-piece)" },
-			{ "!unsubto", "Permet de se désabonner du manga précisé. (!unsubto one-piece)" },
-			{ "!sublist", "Affiche la liste de tous les abonnements aux mangas." },
-			{ "!help" , "Affiche toutes les options." },
-
-			{ "==b" , "Les commandes admin" },
-			{ "!!adduser" , "Ajoute un utilisateur à la bdd." },
-			{ "!!d" , "Affiche la bdd." },
-
-			{ "==c" , "Les deletes" },
-			{ "$fs" , "Formate la phrase qui suit avec de jolies lettres." },
-			{ "$lenny" , "Affiche le meme 'lenny'." },
-			{ "$popopo" , "Affiche le meme 'popopo'." },
-			{ "$ken" , "Tu ne le sais pas, mais tu es déjà mort." },
-			{ "$amaury meme" , "Tout le monde sait ce que c'est." },
-			{ "$mytho ultime" , "El mytho ultima." },
-			{ "$los" , "Trigger la dreamteam de LOS !!" },
-			{ "$pp" , "Random PP Song" },
-			{ "$fap" , "Si t'aime te fap ;)" },
-
-			{ "==d" , "Autres" },
-			{ "bite" , "Si ta phrase contient une bite alors PEPE." },
-			{ "musique de génie" , "Le jour où tu veux écouter de la vrai musique." },
-			{ "Gamabunta" , "Meme naruto." },
-			{ "invocation" , "Idem." },
-			{ "welcome" , "Meme Resident Evil 4." },
-			{ "évidemment" , "Meme Antoine Daniel." },
-			{ "omae wa mou shindeiru" , "Si t'es flemmard, 'omae' suffit xD." },
-			{ "hanauta sancho" , "Le génie de Brook." },
-			{ "DETROIT SMAAAAAAAAASH" , "Cqfd." },
-
-			{ "==e" , "Automatique" },
-			{ "Les hashtags" , "Plus utilisé depuis 2012 (excepté par moi)." },
-			{ "BALDSIGNAL !!" , "Se lance quand on utilise l'émote du baldsignal !!" }
-		};
-
 		public static Dictionary<string, string> pseudo = new Dictionary<string, string>()
 		{
 			{ "Ferrone",    "Ferrone" },
@@ -105,10 +57,10 @@ namespace DiscordBot
 		};
 
 		public static DiscordSocketClient _client;
-		private CancellationTokenSource delay_controller;
-		private ulong master_id = 293780484822138881;
+		public static CancellationTokenSource delay_controller;
+		public static ulong master_id = 293780484822138881;
 
-		private Actions actions;
+		public static Actions actions;
 		public static Database database;
 		public static SocketGuild guild;
 		public static List<string> pp_songs;
@@ -216,7 +168,7 @@ namespace DiscordBot
 						if (action.Item1.StartsWith("!!") && !Utils.verifyAdmin(message))
 							break;
 
-						string msg = action.Item2.Invoke(message);
+						string msg = action.Item3.Invoke(message);
 
 						if (message_lower.StartsWith("$"))
 							Utils.DeleteMessage(message);
@@ -231,7 +183,7 @@ namespace DiscordBot
 					}
 					else if (autres.Contains(action.Item1) && message_lower.Contains(action.Item1))
 					{
-						string msg = action.Item2.Invoke(message);
+						string msg = action.Item3.Invoke(message);
 						await message.Channel.SendMessageAsync(msg);
 					}
 				}
