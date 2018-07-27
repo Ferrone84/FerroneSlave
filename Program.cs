@@ -65,7 +65,6 @@ namespace DiscordBot
 		public static SocketGuild guild;
 		public static List<string> pp_songs;
 		public static List<string> baned_people;
-		public static SortedDictionary<string, List<string>> subData;
 		public static SortedDictionary<string, string> mangasData;
 
 		public static void Main(string[] args)
@@ -117,6 +116,13 @@ namespace DiscordBot
 			}
 		}
 
+		private Task Log(LogMessage msg)
+		{
+			Console.WriteLine(msg.ToString());
+
+			return Task.CompletedTask;
+		}
+
 		private async Task ready()
 		{
 			//inits
@@ -125,7 +131,6 @@ namespace DiscordBot
 			pp_songs = new List<string>();
 			baned_people = new List<string>();
 			mangasData = new SortedDictionary<string, string>();
-			subData = new SortedDictionary<string, List<string>>();
 
 			//mes setups
 			Utils.setupPpSong();
@@ -133,8 +138,8 @@ namespace DiscordBot
 			guild = _client.GetGuild(309407896070782976);
 
 			//Thread qui regarde les nouveaux scans
-			Thread thread = new Thread(Utils.getAllNewChapters);
-			thread.Start();
+			/*Thread thread = new Thread(Utils.getAllNewChapters);
+			thread.Start();*/
 
 			//Thread qui regarde le temps de trajets
 			//Thread traffic_thread = new Thread(fillTrafficData);
@@ -161,13 +166,16 @@ namespace DiscordBot
 
 			try
 			{
+				if (message_lower.StartsWith("!!") && !Utils.verifyAdmin(message))
+				{
+					await message.Channel.SendMessageAsync("Wesh t'es pas admin kestu fais le fou avec moi ?");
+					goto End;
+				}
+
 				foreach (var action in actions.getActions)
 				{
 					if (message_lower.StartsWith(action.Item1))
 					{
-						if (action.Item1.StartsWith("!!") && !Utils.verifyAdmin(message))
-							break;
-
 						string msg = action.Item3.Invoke(message);
 
 						if (message_lower.StartsWith("$"))
@@ -191,6 +199,7 @@ namespace DiscordBot
 			catch (Exception e)
 			{
 				Utils.displayException(e, "Main foreach actions");
+				await message.Channel.SendMessageAsync("La commande n'as pas fonctionnée comme prévu.");
 			}
 
 			///////////////////////////////////////////////////////////////////
@@ -232,17 +241,11 @@ namespace DiscordBot
 				return;
 			}
 
+		End:
 			string logprint = "Message reçu de " + message.Author.Username + " : " + message_lower;
 			Console.WriteLine(logprint);
 			//if (message.Channel.Id == channels["general"])
 			System.IO.File.AppendAllText(Utils.LOGS_FILE_NAME, logprint + "\n");
-		}
-
-		private Task Log(LogMessage msg)
-		{
-			Console.WriteLine(msg.ToString());
-
-			return Task.CompletedTask;
 		}
 	}
 }

@@ -17,14 +17,12 @@ namespace DiscordBot
 			Utils.runPython("init_tables.py");
 		}
 
-		//à terme ça lancera un script python qui lira le fichier data.txt
+		//à terme ça lancera un script python qui parsera le fichier data.txt
 		public void loadMangas()
 		{
 			foreach (KeyValuePair<string, string> kvp in Program.mangasData)
 			{
-				string query = "INSERT INTO mangas (titre, scan) VALUES (?,?)".Replace(' ', ':');
-				string values = kvp.Key + ": "/* + kvp.Value*/;
-				Utils.runPython("query_executor.py", query, values).Replace(':', '\n');
+				addManga(kvp.Key);
 			}
 		}
 
@@ -46,8 +44,8 @@ namespace DiscordBot
 							break;
 						}
 					}
-					string username = user.Username.Replace(' ', '-');
 
+					string username = user.Username.Replace(' ', '-');
 					if (user.Id == 150338863234154496)
 						username = "Fluttershy";
 
@@ -71,6 +69,14 @@ namespace DiscordBot
 			return Utils.runPython("query_executor.py", query, values).Replace(':', '\n');
 		}
 
+		public string addManga(string manga, string scan = " ")
+		{
+			string query = "INSERT INTO mangas (titre, scan) VALUES (?,?)".Replace(' ', ':');
+			string values = manga + ":" + scan;
+
+			return Utils.runPython("query_executor.py", query, values).Replace(':', '\n');
+		}
+
 		public string addSub(string userId, string mangaId)
 		{
 			string query = "INSERT INTO subs (user, manga) VALUES (?,?)".Replace(' ', ':');
@@ -88,9 +94,18 @@ namespace DiscordBot
 
 		public string subTo(string uid, string manga)
 		{
-			string mangaId = makeQuery("SELECT id FROM mangas WHERE titre=?", manga);
-			if (mangaId.Equals(String.Empty))
+			string mangaId = String.Empty;
+			try
+			{
+				mangaId = makeQuery("SELECT id FROM mangas WHERE titre=?", manga);
+				if (mangaId.Equals(String.Empty))
+					return "Le manga '" + manga + "' n'existe pas :/";
+			}
+			catch (Exception e)
+			{
+				Utils.displayException(e, "subTo");
 				return "Le manga '" + manga + "' n'existe pas :/";
+			}
 
 			string userId = makeQuery("SELECT id FROM users WHERE uid=?", uid);
 			if (userId.Equals(String.Empty))
@@ -109,9 +124,18 @@ namespace DiscordBot
 
 		public string unsubTo(string uid, string manga)
 		{
-			string mangaId = makeQuery("SELECT id FROM mangas WHERE titre=?", manga);
-			if (mangaId.Equals(String.Empty))
+			string mangaId = String.Empty;
+			try
+			{
+				mangaId = makeQuery("SELECT id FROM mangas WHERE titre=?", manga);
+				if (mangaId.Equals(String.Empty))
+					return "Le manga '" + manga + "' n'existe pas :/";
+			}
+			catch (Exception e)
+			{
+				Utils.displayException(e, "unsubTo");
 				return "Le manga '" + manga + "' n'existe pas :/";
+			}
 
 			string userId = makeQuery("SELECT id FROM users WHERE uid=?", uid);
 			if (userId.Equals(String.Empty))

@@ -282,6 +282,7 @@ namespace DiscordBot
 				System.IO.File.AppendAllText(Utils.MANGASDATA_FILE_NAME, result);
 				setupMangasData();
 
+				Program.database.addManga(manga);
 				msg = "Manga '" + manga + "' ajouté à la liste.";
 			}
 			catch (ArgumentOutOfRangeException)
@@ -491,15 +492,7 @@ namespace DiscordBot
 
 		public static bool verifyAdmin(SocketMessage message)
 		{
-			if (Program.database.idAdmin(message.Author.Id.ToString()))
-			{
-				return true;
-			}
-			else
-			{
-				message.Channel.SendMessageAsync("Wesh t'es pas admin kestu fais le fou avec moi ?");
-				return false;
-			}
+			return Program.database.idAdmin(message.Author.Id.ToString());
 		}
 
 		public static void setupMangasData()
