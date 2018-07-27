@@ -16,7 +16,11 @@ namespace DiscordBot
 {
 	public class Utils
 	{
-		public static string PYTHON_EXE = @"C:\Users\utilisateur\AppData\Local\Programs\Python\Python37\python.exe";
+		public static string flip = "(╯°□°）╯︵ ┻━┻";
+		public static string unflip = "┬─┬﻿ ノ( ゜-゜ノ)";
+
+		public static string DB_FILE_SAVE = @"bdd_save.db";
+		public static string DB_FILE_NAME = @"resources/bdd.db";
 		public static string PP_FILE_NAME = @"resources/pp.txt";
 		public static string LOGS_FILE_NAME = @"resources/logs.txt";
 		public static string PYTHON_DIR_PATH = @"resources/python/";
@@ -24,8 +28,9 @@ namespace DiscordBot
 		public static string TRAJETS_FILE_NAME = @"resources/trajets.txt";
 		public static string MANGASDATA_FILE_NAME = @"resources/data.txt";
 
-		public static string flip = "(╯°□°）╯︵ ┻━┻";
-		public static string unflip = "┬─┬﻿ ノ( ゜-゜ノ)";
+		public static string PYTHON_EXE = @"C:\Users\utilisateur\AppData\Local\Programs\Python\Python37\python.exe";
+
+
 
 		public static void displayException(Exception e, string message = "Error")
 		{

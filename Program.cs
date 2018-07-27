@@ -265,7 +265,7 @@ namespace DiscordBot
 				/*string msg = "";
 				sendMessageTo(channels["debug"], msg);
 				Console.WriteLine(msg);*/
-				
+
 				/*
 				database.init();
 				database.loadUsers();
@@ -273,7 +273,9 @@ namespace DiscordBot
 				database.addUser("293780484822138881", "ferrone", "nico", 1).aff();
 				database.addUser("150338863234154496", "fluttershy", "luc", 0).aff();
 				database.subTo("150338863234154496", "one-piece").aff();
+				database.makeQuery("UPDATE users SET pseudo=? WHERE uid=?", "Faellyss:227490882033680384").aff();
 				*/
+
 
 				return;
 			}

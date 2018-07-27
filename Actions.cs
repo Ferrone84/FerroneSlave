@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
+using System.IO;
 using Discord.WebSocket;
 
 
@@ -30,8 +31,10 @@ namespace DiscordBot
 			add("!sublist", subList);
 			add("!help", help);
 
-			add("!!adduser", addUser);
 			add("!!d", displayBdd);
+			add("!!adduser", addUser);
+			add("!!savebdd", saveBdd);
+			add("!!restbdd", restBdd);
 
 			add("$fs", fs);
 			add("$lenny", lenny);
@@ -192,18 +195,24 @@ namespace DiscordBot
 		{
 			return Utils.displayAllActions();
 		}
-		
+
 
 		///////////////////////////////////////////////////////////////////
 		//							  Partie Admin
 		///////////////////////////////////////////////////////////////////
 
+		private string displayBdd(SocketMessage message)
+		{
+			return Program.database.display();
+		}
+
 		private string addUser(SocketMessage message)
 		{
-			string msg = String.Empty;
+			string msg = "Il faut rentrer des arguments. Ex : !!adduser 293780484822138881 ferrone nico";
+
 			if (message.Content.ToLower().Length <= "!!adduser".Length)
 			{
-				return "Il faut rentrer des arguments. Ex : !!adduser 293780484822138881 ferrone nico";
+				return msg;
 			}
 			try
 			{
@@ -213,15 +222,40 @@ namespace DiscordBot
 			catch (Exception e)
 			{
 				Utils.displayException(e, "!!adduser");
-				return "Il faut rentrer des arguments. Ex : !!adduser 293780484822138881 ferrone nico";
+				return msg;
 			}
 
 			return String.Empty;
 		}
 
-		private string displayBdd(SocketMessage message)
+		private string saveBdd(SocketMessage message)
 		{
-			return Program.database.display();
+			try
+			{
+				File.Copy(Utils.DB_FILE_NAME, Utils.DB_FILE_SAVE, true);
+			}
+			catch (Exception e)
+			{
+				Utils.displayException(e, "saveBdd");
+				return e.Message;
+			}
+
+			return "La bdd a bien été save.";
+		}
+
+		private string restBdd(SocketMessage message)
+		{
+			try
+			{
+				File.Copy(Utils.DB_FILE_SAVE, Utils.DB_FILE_NAME, true);
+			}
+			catch (Exception e)
+			{
+				Utils.displayException(e, "restBdd");
+				return e.Message;
+			}
+
+			return "La bdd a bien été restaurée.";
 		}
 
 
