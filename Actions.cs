@@ -66,6 +66,16 @@ namespace DiscordBot
 			this.actions.Add(new Tuple<string, string, Func<SocketMessage, string>>(command, description, method));
 		}
 
+		public bool actionExist(string action)
+		{
+			foreach (var act in actions)
+			{
+				if (act.Item1 == action)
+					return true;
+			}
+			return false;
+		}
+
 		public List<Tuple<string, string, Func<SocketMessage, string>>> getActions
 		{
 			get { return actions; }
@@ -204,7 +214,8 @@ namespace DiscordBot
 
 		private string displayBdd(SocketMessage message)
 		{
-			return Program.database.display();
+			if (message.Content == "!d") { return Program.database.display(); }
+			else { return String.Empty; }
 		}
 
 		private string addUser(SocketMessage message)

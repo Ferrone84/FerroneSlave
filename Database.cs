@@ -71,9 +71,16 @@ namespace DiscordBot
 			{
 				string msg = message.Content;
 
-				if (msg.StartsWith("http") && !msg.Contains(" "))
+				if ((msg = Utils.getYtLink(msg)) != String.Empty)
 				{
-					addMusic(msg);
+					try
+					{
+						addMusic(msg);
+					}
+					catch (Exception e)
+					{
+						Utils.displayException(e, "loadMusics");
+					}
 				}
 			}
 		}

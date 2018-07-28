@@ -79,7 +79,7 @@ namespace DiscordBot
 			_client.Ready += ready;
 			_client.MessageReceived += MessageReceived;
 			delay_controller = new CancellationTokenSource();
-			
+
 			await _client.LoginAsync(TokenType.Bot, Utils.getToken());
 			await _client.StartAsync();
 
@@ -165,11 +165,37 @@ namespace DiscordBot
 				}
 			}
 
+			if (message.Channel.Id == channels["musique"])
+			{
+				string msg = String.Empty;
+
+				if ((msg = Utils.getYtLink(message.Content)) != String.Empty)
+				{
+					try
+					{
+						database.addMusic(msg);
+						await ((SocketUserMessage)message).AddReactionAsync(new Emoji("✅"));
+					}
+					catch (Exception)
+					{
+						var emote = await guild.GetEmoteAsync(452977127722188811);
+						await ((SocketUserMessage)message).AddReactionAsync(emote);
+					}
+				}
+			}
+
+			///////////////////////////////////////////////////////////////////
+			//							  Execute command
+			///////////////////////////////////////////////////////////////////
+
 			try
 			{
 				if (message_lower.StartsWith("!!") && !Utils.verifyAdmin(message))
 				{
-					await message.Channel.SendMessageAsync("Wesh t'es pas admin kestu fais le fou avec moi ?");
+					if (actions.actionExist(message_lower))
+						await message.Channel.SendMessageAsync("Wesh t'es pas admin kestu fais le fou avec moi ?");
+					else
+						await message.Channel.SendMessageAsync("L'action demandée (" + message_lower + ") n'existe pas.");
 					goto End;
 				}
 
@@ -185,7 +211,7 @@ namespace DiscordBot
 						if (msg.Contains("|"))
 							foreach (string ms in msg.Split('|'))
 								await message.Channel.SendMessageAsync(ms);
-						else
+						else if (msg != String.Empty)
 							await message.Channel.SendMessageAsync(msg);
 
 						break;
@@ -193,7 +219,7 @@ namespace DiscordBot
 					else if (autres.Contains(action.Item1) && message_lower.Contains(action.Item1))
 					{
 						string msg = action.Item3.Invoke(message);
-						await message.Channel.SendMessageAsync(msg);
+						if (msg != String.Empty) { await message.Channel.SendMessageAsync(msg); }
 					}
 				}
 			}
@@ -222,7 +248,7 @@ namespace DiscordBot
 			//							  Debug Zone
 			///////////////////////////////////////////////////////////////////
 
-			if (message_lower == "!d")
+			if (message_lower.StartsWith("!d"))
 			{
 				/*string msg = "";
 				sendMessageTo(channels["debug"], msg);
@@ -244,7 +270,8 @@ namespace DiscordBot
 				catch (Exception e)
 				{
 					Utils.displayException(e, "!d");
-					Utils.sendMessageTo(channels["debugs"], e.Message+"\n"+e.StackTrace);
+					foreach (var errors in Utils.moreThanTwoThousandsChars(e.Message + "\n" + e.StackTrace).Split('|'))
+						await message.Channel.SendMessageAsync(errors);
 				}
 
 				return;

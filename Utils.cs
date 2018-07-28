@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 
 using Discord;
 using Discord.WebSocket;
@@ -135,6 +136,7 @@ namespace DiscordBot
 
 		public static string moreThanTwoThousandsChars(string str)
 		{
+			str.Length.ToString().debug();
 			string result = String.Empty;
 
 			int start = 0;
@@ -165,7 +167,23 @@ namespace DiscordBot
 
 		public static IEnumerable<IMessage> getMessages(ulong channel)
 		{
-			return ((SocketTextChannel)Program.guild.GetChannel(channel)).GetMessagesAsync(0, Direction.After).Flatten().Result;
+			return ((SocketTextChannel)Program.guild.GetChannel(channel)).GetMessagesAsync(0, Direction.After).FlattenAsync().Result;
+		}
+
+		public static string getYtLink(string message)
+		{
+			string result = String.Empty;
+			string pattern = @"(https?:\/\/)?(www\.|m\.)?youtu(be.com\/watch\/?\?v=|\.be\/)([-_A-Za-z0-9]+)";
+
+			Regex regex = new Regex(pattern);
+			var match = regex.Match(message);
+
+			if (match.Success)
+			{
+				result = match.Value;
+			}
+
+			return result;
 		}
 
 		//-----
