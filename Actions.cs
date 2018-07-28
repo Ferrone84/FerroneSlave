@@ -214,7 +214,7 @@ namespace DiscordBot
 
 		private string displayBdd(SocketMessage message)
 		{
-			if (message.Content == "!d") { return Program.database.display(); }
+			if (message.Content == "!!d") { return Program.database.display(); }
 			else { return String.Empty; }
 		}
 
