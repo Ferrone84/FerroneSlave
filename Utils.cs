@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
+using Discord;
 using Discord.WebSocket;
 using Supremes;
 using System.Threading;
@@ -116,6 +117,22 @@ namespace DiscordBot
 			).ToArray());
 		}
 
+		public static string onlyKeep(string str, List<char> chars)
+		{
+			return new string((from c in str
+							   where chars.Contains(c)
+							   select c
+			).ToArray());
+		}
+
+		public static string removeChars(string str, List<char> chars)
+		{
+			return new string((from c in str
+							   where !chars.Contains(c)
+							   select c
+			).ToArray());
+		}
+
 		public static string moreThanTwoThousandsChars(string str)
 		{
 			string result = String.Empty;
@@ -145,6 +162,13 @@ namespace DiscordBot
 			return Enumerable.Range(0, str.Length / chunkSize)
 				.Select(i => str.Substring(i * chunkSize, chunkSize));
 		}
+
+		public static IEnumerable<IMessage> getMessages(ulong channel)
+		{
+			return ((SocketTextChannel)Program.guild.GetChannel(channel)).GetMessagesAsync(0, Direction.After).Flatten().Result;
+		}
+
+		//-----
 
 		public static string FormateSentence(string sentence)
 		{
@@ -426,6 +450,31 @@ namespace DiscordBot
 			var result = Program.pp_songs[rInt];
 
 			return result;
+		}
+
+		public static string randomSong()
+		{
+			string result = String.Empty;
+			try
+			{
+				string maxId = Program.database.getMaxId("musics");
+				Random r = new Random();
+				do
+				{
+					int rInt = r.Next(1, Convert.ToInt32(maxId));
+					result = Program.database.getLineColumn("musics", "title", rInt.ToString());
+
+				} while (result == String.Empty);
+
+			}
+			catch (Exception e)
+			{
+				displayException(e, "randomSong");
+			}
+			
+			result = removeChars(result, new List<char>() { '(', '\'', ')', ',' });
+
+			return result.Replace("///", "://");
 		}
 
 		public static string traffic()

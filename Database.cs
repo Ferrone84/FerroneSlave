@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using Discord;
+using Discord.WebSocket;
 
 namespace DiscordBot
 {
@@ -61,6 +63,21 @@ namespace DiscordBot
 			}
 		}
 
+		public void loadMusics()
+		{
+			IEnumerable<IMessage> messages = Utils.getMessages(Program.channels["musique"]);
+
+			foreach (var message in messages)
+			{
+				string msg = message.Content;
+
+				if (msg.StartsWith("http") && !msg.Contains(" "))
+				{
+					addMusic(msg);
+				}
+			}
+		}
+
 		public string addUser(string uid, string pseudo, string prenom = "", short admin = 0)
 		{
 			string query = "INSERT INTO users (uid, pseudo, prenom, admin) VALUES (?,?,?,?)".Replace(' ', ':');
@@ -85,11 +102,11 @@ namespace DiscordBot
 			return Utils.runPython("query_executor.py", query, values).Replace(':', '\n');
 		}
 
-		public string get(string table)
+		public string addMusic(string title)
 		{
-			string query = ("SELECT * FROM " + table).Replace(' ', ':');
+			string query = "INSERT INTO musics (title) VALUES (?)".Replace(' ', ':');
 
-			return "Table [" + table + "] : \n" + Utils.runPython("query_executor.py", query).Replace(':', '\n');
+			return Utils.runPython("query_executor.py", query, title.Replace(':', '/')).Replace(':', '\n');
 		}
 
 		public string subTo(string uid, string manga)
@@ -231,6 +248,43 @@ namespace DiscordBot
 		}
 
 
+		public string getLine(string table, string id)
+		{
+			try
+			{
+				return makeQuery("SELECT * FROM " + table + " WHERE id=?", id);
+			}
+			catch (Exception e)
+			{
+				Utils.displayException(e, "getLine");
+				return "";
+			}
+		}
+
+		public string getLineColumn(string table, string column, string id)
+		{
+			try
+			{
+				return makeQuery("SELECT " + column + " FROM " + table + " WHERE id=?", id);
+			}
+			catch (Exception e)
+			{
+				Utils.displayException(e, "getLine");
+				return "";
+			}
+		}
+
+		public string getMaxId(string table)
+		{
+			return Utils.onlyKeepDigits(makeQuery("SELECT id FROM " + table + " ORDER BY id DESC LIMIT 1"));
+		}
+
+		public string get(string table)
+		{
+			string query = ("SELECT * FROM " + table).Replace(' ', ':');
+
+			return "Table [" + table + "] : \n" + Utils.runPython("query_executor.py", query).Replace(':', '\n');
+		}
 
 		private string makeQuery(string query, string values = "")
 		{

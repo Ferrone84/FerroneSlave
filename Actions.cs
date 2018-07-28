@@ -45,6 +45,7 @@ namespace DiscordBot
 			add("$los", "Trigger la dreamteam de LOS !!", los);
 			add("$boulot", "", boulot);
 			add("$pp", "Random PP Song", pp);
+			add("$rsong", "Random Song", rsong);
 			add("$fap", "Si t'aime te fap ;)", fap);
 
 			add("bite", "Si ta phrase contient une bite ou plusieurs alors PEPE*biteNumber.", bite);
@@ -339,6 +340,11 @@ namespace DiscordBot
 		private string pp(SocketMessage message)
 		{
 			return Utils.randomPpSong();
+		}
+
+		private string rsong(SocketMessage message)
+		{
+			return Utils.randomSong();
 		}
 
 		private string fap(SocketMessage message)

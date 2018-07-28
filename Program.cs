@@ -15,6 +15,7 @@ namespace DiscordBot
 			{ "general",        309407896070782976 },
 			{ "mangas",         439960408703369217 },
 			{ "mangas_liste",   440228865881800704 },
+			{ "musique",        472354528948387857 },
 			{ "debug",          353262627880697868 },
 			{ "debugs",         456443420378923010 },
 			{ "zone51",         346760327540506643 },
@@ -138,8 +139,8 @@ namespace DiscordBot
 			guild = _client.GetGuild(309407896070782976);
 
 			//Thread qui regarde les nouveaux scans
-			/*Thread thread = new Thread(Utils.getAllNewChapters);
-			thread.Start();*/
+			Thread thread = new Thread(Utils.getAllNewChapters);
+			thread.Start();
 
 			//Thread qui regarde le temps de trajets
 			//Thread traffic_thread = new Thread(fillTrafficData);
@@ -236,7 +237,15 @@ namespace DiscordBot
 				database.subTo("150338863234154496", "one-piece").aff();
 				database.makeQuery("UPDATE users SET pseudo=? WHERE uid=?", "Faellyss:227490882033680384").aff();
 				*/
+				try
+				{
 
+				}
+				catch (Exception e)
+				{
+					Utils.displayException(e, "!d");
+					Utils.sendMessageTo(channels["debugs"], e.Message+"\n"+e.StackTrace);
+				}
 
 				return;
 			}
