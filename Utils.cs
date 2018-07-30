@@ -165,9 +165,19 @@ namespace DiscordBot
 				.Select(i => str.Substring(i * chunkSize, chunkSize));
 		}
 
-		public static IEnumerable<IMessage> getMessages(ulong channel)
+		public static SocketChannel getChannel(ulong channel)
 		{
-			return ((SocketTextChannel)Program.guild.GetChannel(channel)).GetMessagesAsync(0, Direction.After).FlattenAsync().Result;
+			return Program._client.GetChannel(channel);
+		}
+
+		public static IEnumerable<IMessage> getMessages(SocketChannel channel)
+		{
+			return ((SocketTextChannel)channel).GetMessagesAsync(0, Direction.After).FlattenAsync().Result;
+		}
+
+		public static IEnumerable<IMessage> getMessages(SocketChannel channel, int number)
+		{
+			return ((SocketTextChannel)channel).GetMessagesAsync(number).FlattenAsync().Result;
 		}
 
 		public static string getYtLink(string message)

@@ -278,10 +278,10 @@ namespace DiscordBot
 			}
 
 		End:
-			string logprint = "Message reçu de " + message.Author.Username + " : " + message_lower;
+			string logprint = message.Author.Username + " ("+message.CreatedAt.DateTime.ToString()+") : " + message_lower;
 			Console.WriteLine(logprint);
-			//if (message.Channel.Id == channels["general"])
-			System.IO.File.AppendAllText(Utils.LOGS_FILE_NAME, logprint + "\n");
+			if (message.Channel.Id != channels["debug"] && message.Channel.Id != channels["debugs"])
+				System.IO.File.AppendAllText(Utils.LOGS_FILE_NAME, logprint + "\n");
 		}
 	}
 }

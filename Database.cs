@@ -65,7 +65,7 @@ namespace DiscordBot
 
 		public void loadMusics()
 		{
-			IEnumerable<IMessage> messages = Utils.getMessages(Program.channels["musique"]);
+			IEnumerable<IMessage> messages = Utils.getMessages(Utils.getChannel(Program.channels["musique"]));
 
 			foreach (var message in messages)
 			{

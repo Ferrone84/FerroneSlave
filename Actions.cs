@@ -31,10 +31,11 @@ namespace DiscordBot
 			add("!sublist", "Affiche la liste de tous les abonnements aux mangas.", subList);
 			add("!help", "Affiche toutes les options.", help);
 
-			add("!!d", "Affiche la bdd.", displayBdd);
+			add("!!display", "Affiche la bdd.", displayBdd);
 			add("!!adduser", "Ajoute un utilisateur à la bdd.", addUser);
 			add("!!savebdd", "Sauvegarde la bdd.", saveBdd);
 			add("!!restbdd", "Restaure la bdd.", restBdd);
+			add("!!delete", "Supprime le nombre de messages spécifiés en partant de la fin.", delete);
 
 			add("$fs", "Formate la phrase qui suit avec de jolies lettres.", fs);
 			add("$lenny", "Affiche le meme 'lenny'.", lenny);
@@ -214,8 +215,7 @@ namespace DiscordBot
 
 		private string displayBdd(SocketMessage message)
 		{
-			if (message.Content == "!!d") { return Program.database.display(); }
-			else { return String.Empty; }
+			return Program.database.display();
 		}
 
 		private string addUser(SocketMessage message)
@@ -270,6 +270,27 @@ namespace DiscordBot
 			return "La bdd a bien été restaurée.";
 		}
 
+		private string delete(SocketMessage message) //trouver un moyen de rendre ça async sans vomir
+		{
+			try
+			{
+				int numberOfDelete = Convert.ToInt32(message.Content.Split(' ')[1]) + 1;
+				var messages = Utils.getMessages(Utils.getChannel(message.Channel.Id), numberOfDelete);
+
+				foreach (var msg in messages)
+				{
+					msg.DeleteAsync();
+				}
+			}
+			catch (Exception e)
+			{
+				Utils.displayException(e, "delete");
+				return "La commande doit être du type !!delete 10";
+			}
+
+			return String.Empty;
+		}
+
 
 		///////////////////////////////////////////////////////////////////
 		//							Les deletes
@@ -316,7 +337,7 @@ namespace DiscordBot
 		}
 
 		private string los(SocketMessage message)
-		{			
+		{
 			if (message.Author.Id == 150338863234154496)
 				return "Luc qui casse les couilles à vouloir trigger le LOS !";
 
