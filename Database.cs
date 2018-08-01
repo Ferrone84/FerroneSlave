@@ -230,7 +230,7 @@ namespace DiscordBot
 
 		public string display()
 		{
-			return Utils.moreThanTwoThousandsChars(Utils.runPython("display.py").Replace(':', '\n'));
+			return Utils.splitBodies(Utils.runPython("display.py").Replace(':', '\n'));
 		}
 
 		public List<ulong> getSubs(string manga)

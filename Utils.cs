@@ -134,29 +134,47 @@ namespace DiscordBot
 			).ToArray());
 		}
 
-		public static string moreThanTwoThousandsChars(string str)
+		public static string flatSplit(string str, int maxLength = 2000)
 		{
-			str.Length.ToString().debug();
 			string result = String.Empty;
 
 			int start = 0;
-			while (str.Length >= 2000)
+			while (str.Length >= maxLength)
 			{
-				result += str.Substring(start, 1999) + "|";
-				start += 1999;
-				str = str.Remove(0, 1999);
+				int end = maxLength - 10;
+				result += str.Substring(start, end) + "|";
+				start += end;
+				str = str.Remove(0, end);
 			}
 			result += str;
 
 			return result;
-			/*if (str == String.Empty)
-				return new List<string>();
+		}
 
-			str.debug();
-			var a = (List<string>) Split(str, 1999);
-			foreach (var b in a)
-				b.aff();
-			return a;*/
+		public static string splitBodies(string content, int maxLength = 2000, string delim = "\n")
+		{
+			if (content.Length < maxLength) { return content; }
+			if (!content.Contains(delim)) { return flatSplit(content, maxLength); }
+			if (content.Contains("\n\n")) { delim = "\n\n"; }
+
+			int start = 0;
+			string buffer = content;
+			string result = String.Empty;
+
+			while (buffer.Length >= maxLength)
+			{
+				string tmp = content.Substring(start, maxLength - 5);
+				int lastDelim = tmp.LastIndexOf(delim);
+				if (lastDelim == -1) { return flatSplit(content, maxLength); }
+
+				result += content.Substring(start, lastDelim) + "|";
+				lastDelim += delim.Length;
+				buffer = buffer.Remove(0, lastDelim);
+				start += lastDelim;
+			}
+			result += buffer;
+
+			return result;
 		}
 
 		public static IEnumerable<string> Split(string str, int chunkSize)
@@ -242,34 +260,26 @@ namespace DiscordBot
 
 		public static string displayMangasList()
 		{
-			int count = 0, number = 1;
+			int number = 1;
 			string result = "Voici les mangas qui sont check avec le web parser :\n";
+
 			foreach (KeyValuePair<string, string> kvp in Program.mangasData)
 			{
 				result += "- " + kvp.Key + " (**" + number + "**)\n";
 				number++;
-				if (count++ >= 30)
-				{
-					count = 0;
-					result += "|\n";
-				}
 			}
+
 			return result;
 		}
 
 		public static string displayCompleteMangasList()
 		{
-			int count = 0;
 			string result = "Voici, pour chaque manga, son dernier scan :\n\n";
+
 			foreach (KeyValuePair<string, string> kvp in Program.mangasData)
 			{
 				var kvpValue = kvp.Value.Split(new[] { " => " }, StringSplitOptions.None);
 				result += "```asciidoc\n[" + kvp.Key + "]```" + kvpValue[0] + "\n" + kvpValue[1] + "\n\n";
-				if (count++ > 8)
-				{
-					count = 0;
-					result += "|\n.";
-				}
 			}
 
 			return result;
@@ -375,7 +385,7 @@ namespace DiscordBot
 			return result;
 		}
 
-		public static void getAllNewChapters()
+		public static async void getAllNewChapters()
 		{
 			var time = DateTime.Now;
 			Console.WriteLine("getAllNewChapters (" + time + ")");
@@ -408,7 +418,7 @@ namespace DiscordBot
 
 						string msg = "Nouveau scan trouvé pour " + kvp.Key + " : \n\t" + chapter;
 						if (!chapter.Contains("VUS") && !chapter.Contains("JAP") && !chapter.Contains("SPOILER") && !chapter.Contains("RAW"))
-							sendMessageTo(Program.channels["mangas"], msg + " " + subs);
+							await sendMessageTo(Program.channels["mangas"], msg + " " + subs);
 
 						setupMangasData();
 					}
@@ -422,15 +432,18 @@ namespace DiscordBot
 			Console.WriteLine("search done. (" + DateTime.Now + ") [" + now + "]");
 
 			Thread.Sleep(10800000); //3h
-									//Thread.Sleep(1800000);		//30min
+			//Thread.Sleep(1800000);		//30min
 			getAllNewChapters();
 		}
 
-		public static void sendMessageTo(ulong channel, string message)
+		public static async Task sendMessageTo(ulong channel, string message)
 		{
 			try
 			{
-				((SocketTextChannel)Program._client.GetChannel(channel)).SendMessageAsync(message);
+				foreach (var msg in splitBodies(message).Split('|'))
+				{
+					await ((SocketTextChannel)Program._client.GetChannel(channel)).SendMessageAsync(msg);
+				}
 			}
 			catch (Exception e)
 			{
@@ -438,11 +451,14 @@ namespace DiscordBot
 			}
 		}
 
-		public static async Task reply(SocketMessage message, string msg)
+		public static async Task reply(SocketMessage message, string response)
 		{
 			try
 			{
-				await message.Channel.SendMessageAsync(msg);
+				foreach (var msg in splitBodies(response).Split('|'))
+				{
+					await message.Channel.SendMessageAsync(msg);
+				}
 			}
 			catch (Exception e)
 			{
@@ -499,7 +515,7 @@ namespace DiscordBot
 			{
 				displayException(e, "randomSong");
 			}
-			
+
 			result = removeChars(result, new List<char>() { '(', '\'', ')', ',' });
 
 			return result.Replace("///", "://");

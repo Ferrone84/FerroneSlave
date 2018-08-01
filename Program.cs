@@ -145,6 +145,8 @@ namespace DiscordBot
 			//Thread qui regarde le temps de trajets
 			//Thread traffic_thread = new Thread(fillTrafficData);
 			//traffic_thread.Start();
+
+			await Utils.sendMessageTo(channels["debugs"], "Bot ready");
 		}
 
 		private async Task MessageReceived(SocketMessage message)
@@ -205,14 +207,16 @@ namespace DiscordBot
 					{
 						string msg = action.Item3.Invoke(message);
 
-						if (message_lower.StartsWith("$"))
-							Utils.DeleteMessage(message);
+						if (message_lower.StartsWith("$")) { Utils.DeleteMessage(message); }
 
 						if (msg.Contains("|"))
+						{
 							foreach (string ms in msg.Split('|'))
+							{
 								await message.Channel.SendMessageAsync(ms);
-						else if (msg != String.Empty)
-							await message.Channel.SendMessageAsync(msg);
+							}
+						}
+						else if (msg != String.Empty) { await message.Channel.SendMessageAsync(msg); }
 
 						break;
 					}
@@ -265,12 +269,12 @@ namespace DiscordBot
 				*/
 				try
 				{
-
+					await Utils.sendMessageTo(channels["debugs"], Utils.displayCompleteMangasList());
 				}
 				catch (Exception e)
 				{
 					Utils.displayException(e, "!d");
-					foreach (var errors in Utils.moreThanTwoThousandsChars(e.Message + "\n" + e.StackTrace).Split('|'))
+					foreach (var errors in Utils.splitBodies(e.Message + "\n" + e.StackTrace).Split('|'))
 						await message.Channel.SendMessageAsync(errors);
 				}
 
@@ -278,7 +282,7 @@ namespace DiscordBot
 			}
 
 		End:
-			string logprint = message.Author.Username + " ("+message.CreatedAt.DateTime.ToString()+") : " + message_lower;
+			string logprint = message.Author.Username + " (" + message.CreatedAt.DateTime.ToString() + ") : " + message_lower;
 			Console.WriteLine(logprint);
 			if (message.Channel.Id != channels["debug"] && message.Channel.Id != channels["debugs"])
 				System.IO.File.AppendAllText(Utils.LOGS_FILE_NAME, logprint + "\n");
