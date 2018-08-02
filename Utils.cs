@@ -18,6 +18,7 @@ namespace DiscordBot
 {
 	public class Utils
 	{
+		public static char splitChar = '|';
 		public static string flip = "(╯°□°）╯︵ ┻━┻";
 		public static string unflip = "┬─┬﻿ ノ( ゜-゜ノ)";
 
@@ -136,13 +137,14 @@ namespace DiscordBot
 
 		public static string flatSplit(string str, int maxLength = 2000)
 		{
+			"digoulasse".debug();
 			string result = String.Empty;
 
 			int start = 0;
 			while (str.Length >= maxLength)
 			{
 				int end = maxLength - 10;
-				result += str.Substring(start, end) + "|";
+				result += str.Substring(start, end) + splitChar;
 				start += end;
 				str = str.Remove(0, end);
 			}
@@ -167,7 +169,7 @@ namespace DiscordBot
 				int lastDelim = tmp.LastIndexOf(delim);
 				if (lastDelim == -1) { return flatSplit(content, maxLength); }
 
-				result += content.Substring(start, lastDelim) + "|";
+				result += content.Substring(start, lastDelim) + splitChar;
 				lastDelim += delim.Length;
 				buffer = buffer.Remove(0, lastDelim);
 				start += lastDelim;
@@ -269,7 +271,7 @@ namespace DiscordBot
 				number++;
 			}
 
-			return result;
+			return splitBodies(result);
 		}
 
 		public static string displayCompleteMangasList()
@@ -282,7 +284,7 @@ namespace DiscordBot
 				result += "```asciidoc\n[" + kvp.Key + "]```" + kvpValue[0] + "\n" + kvpValue[1] + "\n\n";
 			}
 
-			return result;
+			return splitBodies(result);
 		}
 
 		public static string lastChapter(string message_lower)
@@ -382,7 +384,7 @@ namespace DiscordBot
 				result += "\t - " + action.Item1 + " : " + action.Item2 + "\n";
 			}
 
-			return result;
+			return splitBodies(result);
 		}
 
 		public static async void getAllNewChapters()
@@ -440,7 +442,7 @@ namespace DiscordBot
 		{
 			try
 			{
-				foreach (var msg in splitBodies(message).Split('|'))
+				foreach (var msg in splitBodies(message).Split(splitChar))
 				{
 					await ((SocketTextChannel)Program._client.GetChannel(channel)).SendMessageAsync(msg);
 				}
@@ -455,7 +457,7 @@ namespace DiscordBot
 		{
 			try
 			{
-				foreach (var msg in splitBodies(response).Split('|'))
+				foreach (var msg in splitBodies(response).Split(splitChar))
 				{
 					await message.Channel.SendMessageAsync(msg);
 				}
@@ -580,7 +582,7 @@ namespace DiscordBot
 			{
 				result += "\t - " + entry.Key + " : " + entry.Value + "\n";
 			}
-			return result;
+			return splitBodies(result);
 		}
 
 		public static bool verifyAdmin(SocketMessage message)
@@ -596,7 +598,7 @@ namespace DiscordBot
 				string[] lines = System.IO.File.ReadAllLines(Utils.MANGASDATA_FILE_NAME);
 				foreach (string line in lines)
 				{
-					var data = line.Split('|');
+					var data = line.Split(splitChar);
 					var manga = data[0];
 					var content = data[1];
 

@@ -209,9 +209,9 @@ namespace DiscordBot
 
 						if (message_lower.StartsWith("$")) { Utils.DeleteMessage(message); }
 
-						if (msg.Contains("|"))
+						if (msg.Contains(Utils.splitChar.ToString()))
 						{
-							foreach (string ms in msg.Split('|'))
+							foreach (string ms in msg.Split(Utils.splitChar))
 							{
 								await message.Channel.SendMessageAsync(ms);
 							}
@@ -274,7 +274,7 @@ namespace DiscordBot
 				catch (Exception e)
 				{
 					Utils.displayException(e, "!d");
-					foreach (var errors in Utils.splitBodies(e.Message + "\n" + e.StackTrace).Split('|'))
+					foreach (var errors in Utils.splitBodies(e.Message + "\n" + e.StackTrace).Split(Utils.splitChar))
 						await message.Channel.SendMessageAsync(errors);
 				}
 
