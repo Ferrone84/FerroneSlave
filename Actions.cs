@@ -348,7 +348,7 @@ namespace DiscordBot
 			{
 				foreach (var role in user.Roles)
 				{
-					if (role.Id == 471428502621650947)
+					if (role.Id == 471428502621650947 && user.Id != message.Author.Id)
 					{
 						msg += "<@" + user.Id + "> ";
 					}

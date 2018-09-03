@@ -20,6 +20,10 @@ cursor.execute('''DROP TABLE IF EXISTS subs''')
 cursor.execute('''CREATE TABLE subs
 			  (id INTEGER PRIMARY KEY AUTOINCREMENT, user INTEGER CHECK(typeof(user) = 'integer'), manga INTEGER CHECK(typeof(manga) = 'integer'))''')
 
+cursor.execute('''DROP TABLE IF EXISTS musics''')
+cursor.execute('''CREATE TABLE musics
+			  (id INTEGER PRIMARY KEY AUTOINCREMENT, title varchar NOT NULL UNIQUE)''')
+
 
 
 # values = [(293780484822138881, "ferrone", "nico", True)]

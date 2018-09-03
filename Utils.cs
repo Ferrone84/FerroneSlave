@@ -18,6 +18,7 @@ namespace DiscordBot
 {
 	public class Utils
 	{
+		public static int timeout = 15000;
 		public static char splitChar = '|';
 		public static string flip = "(╯°□°）╯︵ ┻━┻";
 		public static string unflip = "┬─┬﻿ ノ( ゜-゜ノ)";
@@ -299,6 +300,10 @@ namespace DiscordBot
 			{
 				msg = "Ce manga n'existe pas. Le nom doit être de la forme : one-piece";
 			}
+			catch (TimeoutException)
+			{
+				msg = "Le site doit être en maintenance (timeout du crawl).";
+			}
 			catch (Exception)
 			{
 				msg = "La commande est mal écrite. Elle doit être de la forme : !lastchapter one-piece";
@@ -308,14 +313,22 @@ namespace DiscordBot
 
 		public static string getLastChapterOf(string manga)
 		{
-			string url = "http://www.japscan.cc/mangas/" + manga;
-
-			var document = Dcsoup.Parse(new Uri(url), 30000);
+			string site = "https://www.japscan.cc";
+			string url = site + "/mangas/" + manga;
+			Supremes.Nodes.Document document = null;
+			try
+			{
+				document = Dcsoup.Parse(new Uri(url), timeout);
+			}
+			catch (Exception)
+			{
+				throw new TimeoutException("Timeout on : <" + url + ">");
+			}
 			var divChaptersList = document.Select("div[id=liste_chapitres]");
 
 			var firstChapterCatch = divChaptersList.Select("ul").Select("li").Select("a")[0];
 			var firstChapterName = firstChapterCatch.Text;
-			var link = "http:" + firstChapterCatch.ToString().Split('\"')[1];
+			var link = site + firstChapterCatch.ToString().Split('\"')[1];
 			var version = "(VF)";
 			try
 			{
@@ -340,10 +353,10 @@ namespace DiscordBot
 					msg = "Ce manga est déjà dans la liste poto ! :)";
 					return msg;
 				}
-				string chapter = Utils.getLastChapterOf(manga);
+				string chapter = getLastChapterOf(manga);
 
 				string result = "\n" + manga + "|" + chapter;
-				System.IO.File.AppendAllText(Utils.MANGASDATA_FILE_NAME, result);
+				System.IO.File.AppendAllText(MANGASDATA_FILE_NAME, result);
 				setupMangasData();
 
 				Program.database.addManga(manga);
@@ -395,10 +408,10 @@ namespace DiscordBot
 			{
 				try
 				{
-					string chapter = Utils.getLastChapterOf(kvp.Key);
+					string chapter = getLastChapterOf(kvp.Key);
 					if (kvp.Value != chapter)
 					{
-						string toWrite = imitateMangasData();
+						string toWrite = imitateMangasData(); //digoulasse ^9000
 						int pos = toWrite.IndexOf(kvp.Key) + kvp.Key.Length + 1;
 						int nextLinePos = toWrite.IndexOf('\n', pos);
 
@@ -408,7 +421,7 @@ namespace DiscordBot
 						toWrite = toWrite.Remove(pos, nextLinePos - pos);
 						toWrite = toWrite.Insert(pos, chapter);
 
-						System.IO.File.WriteAllText(Utils.MANGASDATA_FILE_NAME, toWrite);
+						System.IO.File.WriteAllText(MANGASDATA_FILE_NAME, toWrite);
 
 						string subs = String.Empty;
 						var users = Program.database.getSubs(kvp.Key);
@@ -425,16 +438,22 @@ namespace DiscordBot
 						setupMangasData();
 					}
 				}
+				catch (TimeoutException)
+				{
+					await sendMessageTo(Program.channels["debug"], "Le crawl des mangas a échoué, car la connexion au site a été plus longue que le timeout de " + timeout + "ms.");
+					goto Loop;
+				}
 				catch (Exception e)
 				{
-					Utils.displayException(e, "Exception on getAllNewChapters()");
+					displayException(e, "Exception on getAllNewChapters()");
 				}
 			}
+
+		Loop:
 			var now = DateTime.Now - time;
 			Console.WriteLine("search done. (" + DateTime.Now + ") [" + now + "]");
-
-			Thread.Sleep(10800000); //3h
-			//Thread.Sleep(1800000);		//30min
+			Thread.Sleep(10800000);     //3h
+										//Thread.Sleep(1800000);	//30min
 			getAllNewChapters();
 		}
 
@@ -449,7 +468,7 @@ namespace DiscordBot
 			}
 			catch (Exception e)
 			{
-				Utils.displayException(e, "Impossible to send message, sendMessageTo(ulong channel, string message)");
+				displayException(e, "Impossible to send message, sendMessageTo(ulong channel, string message)");
 			}
 		}
 
@@ -464,7 +483,7 @@ namespace DiscordBot
 			}
 			catch (Exception e)
 			{
-				Utils.displayException(e, "Impossible to send message, reply(SocketMessage message, string msg)");
+				displayException(e, "Impossible to send message, reply(SocketMessage message, string msg)");
 				await message.Channel.SendMessageAsync("Le message est trop long <3");
 			}
 		}
@@ -480,7 +499,7 @@ namespace DiscordBot
 			string result = day + ":" + hour + "=" + duration + "\n";
 
 			if (Int32.Parse(time.Hour.ToString()) > 8 && Int32.Parse(time.Hour.ToString()) < 21)
-				System.IO.File.AppendAllText(Utils.TRAJETS_FILE_NAME, result);
+				System.IO.File.AppendAllText(TRAJETS_FILE_NAME, result);
 
 			var now = DateTime.Now - time;
 			Console.WriteLine("fill traffic data done. (" + DateTime.Now + ") [" + now + "]");
@@ -571,7 +590,7 @@ namespace DiscordBot
 			}
 			catch (Exception e)
 			{
-				Utils.displayException(e, "DeleteException on DeleteMessage(SocketMessage message)");
+				displayException(e, "DeleteException on DeleteMessage(SocketMessage message)");
 			}
 		}
 
@@ -595,7 +614,7 @@ namespace DiscordBot
 			try
 			{
 				Program.mangasData = new SortedDictionary<string, string>();
-				string[] lines = System.IO.File.ReadAllLines(Utils.MANGASDATA_FILE_NAME);
+				string[] lines = System.IO.File.ReadAllLines(MANGASDATA_FILE_NAME);
 				foreach (string line in lines)
 				{
 					var data = line.Split(splitChar);
@@ -607,13 +626,13 @@ namespace DiscordBot
 			}
 			catch (Exception e)
 			{
-				Utils.displayException(e, "Exception on setupMangasData()");
+				displayException(e, "Exception on setupMangasData()");
 			}
 		}
 
 		public static void setupPpSong()
 		{
-			string[] lines = System.IO.File.ReadAllLines(Utils.PP_FILE_NAME);
+			string[] lines = System.IO.File.ReadAllLines(PP_FILE_NAME);
 			foreach (string line in lines)
 			{
 				Program.pp_songs.Add(line);
@@ -622,13 +641,13 @@ namespace DiscordBot
 
 		public static string getToken()
 		{
-			string[] lines = System.IO.File.ReadAllLines(Utils.TOKEN_FILE_NAME);
+			string[] lines = System.IO.File.ReadAllLines(TOKEN_FILE_NAME);
 			return lines[0];
 		}
 
 		public static string getApiKey()
 		{
-			string[] lines = System.IO.File.ReadAllLines(Utils.TOKEN_FILE_NAME);
+			string[] lines = System.IO.File.ReadAllLines(TOKEN_FILE_NAME);
 			return lines[1];
 		}
 	}
