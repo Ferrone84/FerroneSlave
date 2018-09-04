@@ -1,4 +1,6 @@
-﻿using System;
+﻿#define UTILS
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -35,6 +37,22 @@ namespace DiscordBot
 		public static string PYTHON_EXE = @"C:\Users\utilisateur\AppData\Local\Programs\Python\Python37\python.exe";
 
 
+		public static void init()
+		{
+			if (isLinux) 
+			{
+				PYTHON_EXE = @"/usr/bin/python3";
+			}
+		}
+
+		public static bool isLinux
+		{
+			get
+			{
+				int p = (int) Environment.OSVersion.Platform;
+				return (p == 4) || (p == 6) || (p == 128);
+			}
+		}
 
 		public static void displayException(Exception e, string message = "Error")
 		{
@@ -138,7 +156,7 @@ namespace DiscordBot
 
 		public static string flatSplit(string str, int maxLength = 2000)
 		{
-			"digoulasse".debug();
+			"flatSplit digoulasse".debug();
 			string result = String.Empty;
 
 			int start = 0;
@@ -452,8 +470,8 @@ namespace DiscordBot
 		Loop:
 			var now = DateTime.Now - time;
 			Console.WriteLine("search done. (" + DateTime.Now + ") [" + now + "]");
-			Thread.Sleep(10800000);     //3h
-										//Thread.Sleep(1800000);	//30min
+			//Thread.Sleep(10800000);     //3h
+			Thread.Sleep(1800000);	//30min
 			getAllNewChapters();
 		}
 

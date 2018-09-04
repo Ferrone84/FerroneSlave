@@ -134,6 +134,7 @@ namespace DiscordBot
 			mangasData = new SortedDictionary<string, string>();
 
 			//mes setups
+			Utils.init();
 			Utils.setupPpSong();
 			Utils.setupMangasData();
 			guild = _client.GetGuild(309407896070782976);
