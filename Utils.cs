@@ -401,10 +401,11 @@ namespace DiscordBot
 			{
 				if (action.Item2 == String.Empty) { continue; }
 
-				if (action.Item1.StartsWith("!!")) { type = "Les Commandes admin"; }
+				/*if (action.Item1.StartsWith("!!")) { type = "Les Commandes admin"; }
 				else if (action.Item1.StartsWith("!")) { type = "Les Commandes"; }
 				else if (action.Item1.StartsWith("$")) { type = "Les Deletes"; }
-				else { type = "Autres"; }
+				else { type = "Autres"; }*/
+				type = Actions.getActionType(action.Item1);
 
 				if (type != typeSave)
 				{
@@ -612,16 +613,6 @@ namespace DiscordBot
 			}
 		}
 
-		public static string displayAllTags()
-		{
-			string result = "Voici tous les tags :\n";
-			foreach (KeyValuePair<string, string> entry in Program.mention)
-			{
-				result += "\t - " + entry.Key + " : " + entry.Value + "\n";
-			}
-			return splitBodies(result);
-		}
-
 		public static bool verifyAdmin(SocketMessage message)
 		{
 			return Program.database.idAdmin(message.Author.Id.ToString());
@@ -657,6 +648,17 @@ namespace DiscordBot
 			}
 		}
 
+		public static void setupOtherActionsList() 
+		{
+			foreach (var action in Program.actions.getActions)
+			{
+				if (Actions.getActionType(action.Item1) == "Autres")
+				{
+					Program.autres.Add(action.Item1);
+				}
+			}
+		}
+
 		public static string getToken()
 		{
 			string[] lines = System.IO.File.ReadAllLines(TOKEN_FILE_NAME);
@@ -676,10 +678,6 @@ namespace DiscordBot
 		{
 			Console.WriteLine(str);
 		}
-		public static void debug(this string str)
-		{
-			Console.WriteLine("/" + str + "/");
-		}
 
 		public static void aff(this int entier)
 		{
@@ -689,6 +687,27 @@ namespace DiscordBot
 		public static void aff(this bool var)
 		{
 			Console.WriteLine(var);
+		}
+		
+		public static void debug(this string str)
+		{
+			Console.WriteLine("/" + str + "/");
+		}
+		
+		public static void debug<T>(this List<T> list)
+		{
+			foreach (var line in list)
+			{
+				Console.WriteLine("/" + line + "/");
+			}
+		}
+		
+		public static void debug<T, G>(this Dictionary<T, G> dict)
+		{
+			foreach (var line in dict)
+			{
+				Console.WriteLine("/" + line.Key + "/ : /" + line.Value + "/");
+			}
 		}
 	}
 }

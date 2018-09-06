@@ -19,7 +19,7 @@ namespace DiscordBot
 			Utils.runPython("init_tables.py");
 		}
 
-		//à terme ça lancera un script python qui parsera le fichier data.txt
+		//Ã  terme Ã§a lancera un script python qui parsera le fichier data.txt
 		public void loadMangas()
 		{
 			foreach (KeyValuePair<string, string> kvp in Program.mangasData)
@@ -133,17 +133,17 @@ namespace DiscordBot
 
 			string userId = makeQuery("SELECT id FROM users WHERE uid=?", uid);
 			if (userId.Equals(String.Empty))
-				return "L'utilisateur n'est pas dans la base de données :/";
+				return "L'utilisateur n'est pas dans la base de donnÃ©es :/";
 
 			mangaId = Utils.onlyKeepDigits(mangaId);
 			userId = Utils.onlyKeepDigits(userId);
 			string alreadySub = makeQuery("SELECT id FROM subs WHERE user=? and manga=?", userId + ":" + mangaId);
 			if (!alreadySub.Equals(String.Empty))
-				return "Tu es déjà abonné à ce manga ! :)";
+				return "Tu es dÃ©jÃ  abonnÃ© Ã  ce manga ! :)";
 
 			addSub(userId, mangaId);
 
-			return "Vous vous êtes bien abonné au manga '" + manga + "'.";
+			return "Vous vous Ãªtes bien abonnÃ© au manga '" + manga + "'.";
 		}
 
 		public string unsubTo(string uid, string manga)
@@ -163,17 +163,17 @@ namespace DiscordBot
 
 			string userId = makeQuery("SELECT id FROM users WHERE uid=?", uid);
 			if (userId.Equals(String.Empty))
-				return "L'utilisateur n'est pas dans la base de données :/";
+				return "L'utilisateur n'est pas dans la base de donnÃ©es :/";
 
 			mangaId = Utils.onlyKeepDigits(mangaId);
 			userId = Utils.onlyKeepDigits(userId);
 			string alreadySub = makeQuery("SELECT id FROM subs WHERE user=? and manga=?", userId + ":" + mangaId);
 			if (alreadySub.Equals(String.Empty))
-				return "Tu n'es pas abonné à ce manga ! :)";
+				return "Tu n'es pas abonnÃ© Ã  ce manga ! :)";
 
 			makeQuery("DELETE FROM subs WHERE user=? and manga=?", userId + ":" + mangaId);
 
-			return "Vous vous êtes bien désabonné du manga '" + manga + "'.";
+			return "Vous vous Ãªtes bien dÃ©sabonnÃ© du manga '" + manga + "'.";
 		}
 
 		public string subList(string uid, string user = "")
@@ -181,7 +181,7 @@ namespace DiscordBot
 			string result = String.Empty;
 			string userId = makeQuery("SELECT id FROM users WHERE uid=?", uid);
 			if (userId.Equals(String.Empty))
-				return "L'utilisateur n'est pas dans la base de données :/";
+				return "L'utilisateur n'est pas dans la base de donnÃ©es :/";
 
 			if (user.Equals(String.Empty))
 			{
@@ -209,7 +209,7 @@ namespace DiscordBot
 			}
 			else
 			{
-				return "pas encore implémenté";
+				return "pas encore implÃ©mentÃ©";
 			}
 		}
 

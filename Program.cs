@@ -29,33 +29,6 @@ namespace DiscordBot
 			{ "Bruno",      "Faellyss" }
 		};
 
-		public static Dictionary<string, string> mention = new Dictionary<string, string>()
-		{
-			{ "Ferrone",    "<@293780484822138881>" },
-			{ "Luc",        "<@150338863234154496>" },
-			{ "Renaud",     "<@221984029900144640>" },
-			{ "Bringer",    "<@231805289194586112>" },
-			{ "Sacha",      "<@200728195652124673>" },
-			{ "Dimitri",    "<@227738602312957961>" },
-			{ "Pierre",     "<@229215949478297601>" },
-			{ "Mayeul",     "<@313784177021550593>" },
-			{ "Bruno",      "<@227490882033680384>" }
-		};
-
-		public static List<string> autres = new List<string>()
-		{
-			"bite",
-			"musique de génie",
-			"Gamabunta",
-			"invocation",
-			"welcome",
-			"évidemment",
-			"evidemment",
-			"omae",
-			"sancho",
-			"detroit",
-			"smash"
-		};
 
 		public static DiscordSocketClient _client;
 		public static CancellationTokenSource delay_controller;
@@ -64,6 +37,7 @@ namespace DiscordBot
 		public static Actions actions;
 		public static Database database;
 		public static SocketGuild guild;
+		public static List<string> autres;
 		public static List<string> pp_songs;
 		public static List<string> baned_people;
 		public static SortedDictionary<string, string> mangasData;
@@ -129,6 +103,7 @@ namespace DiscordBot
 			//inits
 			actions = new Actions();
 			database = new Database();
+			autres = new List<string>();
 			pp_songs = new List<string>();
 			baned_people = new List<string>();
 			mangasData = new SortedDictionary<string, string>();
@@ -137,6 +112,7 @@ namespace DiscordBot
 			Utils.init();
 			Utils.setupPpSong();
 			Utils.setupMangasData();
+			Utils.setupOtherActionsList();
 			guild = _client.GetGuild(309407896070782976);
 
 			//Thread qui regarde les nouveaux scans
@@ -245,7 +221,7 @@ namespace DiscordBot
 			}*/
 			if ((message_lower.Contains("bald") && message_lower.Contains("signal")) || message_lower.Contains("baldsignal"))
 			{
-				string msg = mention["Ferrone"];
+				string msg = "<@" + master_id + ">";
 				await message.Channel.SendMessageAsync(msg);
 			}
 
@@ -283,7 +259,7 @@ namespace DiscordBot
 			}
 
 		End:
-			string logprint = message.Author.Username + " (" + message.CreatedAt.DateTime.ToString() + ") : " + message_lower;
+			string logprint = message.Author.Username + " (" + DateTime.Now.ToString() + ") : " + message_lower;
 			Console.WriteLine(logprint);
 			if (message.Channel.Id != channels["debug"] && message.Channel.Id != channels["debugs"])
 				System.IO.File.AppendAllText(Utils.LOGS_FILE_NAME, logprint + "\n");

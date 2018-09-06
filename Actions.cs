@@ -82,6 +82,18 @@ namespace DiscordBot
 			get { return actions; }
 		}
 
+		public static string getActionType(string action)
+		{
+			string type = String.Empty;
+
+			if (action.StartsWith("!!")) { type = "Les Commandes admin"; }
+			else if (action.StartsWith("!")) { type = "Les Commandes"; }
+			else if (action.StartsWith("$")) { type = "Les Deletes"; }
+			else { type = "Autres"; }
+
+			return type;
+		}
+
 
 
 		///////////////////////////////////////////////////////////////////
