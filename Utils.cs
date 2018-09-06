@@ -400,11 +400,6 @@ namespace DiscordBot
 			foreach (var action in Program.actions.getActions)
 			{
 				if (action.Item2 == String.Empty) { continue; }
-
-				/*if (action.Item1.StartsWith("!!")) { type = "Les Commandes admin"; }
-				else if (action.Item1.StartsWith("!")) { type = "Les Commandes"; }
-				else if (action.Item1.StartsWith("$")) { type = "Les Deletes"; }
-				else { type = "Autres"; }*/
 				type = Actions.getActionType(action.Item1);
 
 				if (type != typeSave)
