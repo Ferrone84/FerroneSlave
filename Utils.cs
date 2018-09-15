@@ -613,6 +613,21 @@ namespace DiscordBot
 			return Program.database.idAdmin(message.Author.Id.ToString());
 		}
 
+		public static void alert()
+		{
+			Thread thread = new Thread(simpleAlert);
+			thread.Start();
+		}
+
+		//Privates
+		private async static void simpleAlert()
+		{
+			await sendMessageTo(Program.channels["warframe"], "VAUBAAAAAAAAAAAAAAAN <@&482688599201021982>");
+			Thread.Sleep(5000);
+			simpleAlert();
+		}
+
+		//Setups
 		public static void setupMangasData()
 		{
 			try
@@ -654,6 +669,7 @@ namespace DiscordBot
 			}
 		}
 
+		//Getters
 		public static string getToken()
 		{
 			string[] lines = System.IO.File.ReadAllLines(TOKEN_FILE_NAME);

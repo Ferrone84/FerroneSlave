@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
 using System.Threading;
+using System.Collections.ObjectModel;
 
 namespace DiscordBot
 {
@@ -19,6 +20,7 @@ namespace DiscordBot
 			{ "debug",          353262627880697868 },
 			{ "debugs",         456443420378923010 },
 			{ "zone51",         346760327540506643 },
+			{ "warframe",       483426339009986560 },
 			{ "peguts",         392118626561294346 }
 		};
 
@@ -128,11 +130,6 @@ namespace DiscordBot
 
 		private async Task MessageReceived(SocketMessage message)
 		{
-			if (baned_people.Contains(message.Author.Username) || message.Author.IsBot)
-			{
-				return;
-			}
-
 			string message_lower = message.Content.ToLower();
 
 			if (message.Author.Id == master_id)
@@ -143,6 +140,10 @@ namespace DiscordBot
 					return;
 				}
 			}
+
+			///////////////////////////////////////////////////////////////////
+			//							  Channels actions
+			///////////////////////////////////////////////////////////////////
 
 			if (message.Channel.Id == channels["musique"])
 			{
@@ -162,6 +163,43 @@ namespace DiscordBot
 					}
 				}
 			}
+			//else if (message.Channel.Id == channels["warframe"])
+			//{
+				if (message.Author.Id == 123591822579597315)
+				{
+					string alertTitle = String.Empty;
+					try
+					{
+						foreach (var embed in message.Embeds)
+						{
+							alertTitle = embed.Title;
+						}
+						//alertTitle.debug();
+					}
+					catch (Exception e)
+					{
+						Utils.displayException(e, "foreach (var embed in message.Embeds)");
+					}
+
+					if (alertTitle.Contains("Nitain"))
+					{
+						await message.Channel.SendMessageAsync("<@&482688599201021982>");
+					}
+					else if (alertTitle.Contains("Vauban Neuroptics Blueprint"))
+					{
+						Utils.alert();
+					}
+				}
+			//}
+
+			///////////////////////////////////////////////////////////////////
+			//							  Limited users
+			///////////////////////////////////////////////////////////////////
+			if (baned_people.Contains(message.Author.Id.ToString()) || message.Author.IsBot)
+			{
+				return;
+			}
+
 
 			///////////////////////////////////////////////////////////////////
 			//							  Execute command
@@ -246,7 +284,10 @@ namespace DiscordBot
 				*/
 				try
 				{
-					await Utils.sendMessageTo(channels["debugs"], Utils.displayCompleteMangasList());
+					if (message.Content.Contains("Vauban Neuroptics Blueprint"))
+					{
+						Utils.alert();
+					}
 				}
 				catch (Exception e)
 				{
