@@ -257,16 +257,9 @@ namespace DiscordBot
 			{
 				try
 				{
-<<<<<<< HEAD
-					if (message.Content.Contains("Vauban Neuroptics Blueprint"))
-					{
-						Utils.alert(Program.channels["warframe"],"VAUBAAAAAAAAAAAAAAAN <@&482688599201021982>");
-					}
-=======
 					/*string msg = "";
 					sendMessageTo(channels["debug"], msg);
 					Console.WriteLine(msg);*/
->>>>>>> 5ed7c7ec9623a5d81ff0dcd4553a363dc449a633
 				}
 				catch (Exception e)
 				{
