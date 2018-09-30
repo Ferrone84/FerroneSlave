@@ -24,13 +24,6 @@ namespace DiscordBot
 			{ "peguts",         392118626561294346 }
 		};
 
-		public static Dictionary<string, string> pseudo = new Dictionary<string, string>()
-		{
-			{ "Ferrone",    "Ferrone" },
-			{ "Luc",        "𝓕𝓵𝓾𝓽𝓽𝓮𝓻𝓢𝓱𝔂" },
-			{ "Bruno",      "Faellyss" }
-		};
-
 
 		public static DiscordSocketClient _client;
 		public static CancellationTokenSource delay_controller;
@@ -163,27 +156,34 @@ namespace DiscordBot
 					}
 				}
 			}
-
-			if (message.Author.Id == 123591822579597315)
-			{
-				string alertTitle = String.Empty;
-				try
+			//else if (message.Channel.Id == channels["warframe"])
+			//{
+				if (message.Author.Id == 123591822579597315)
 				{
-					foreach (var embed in message.Embeds)
+					string alertTitle = String.Empty;
+					try
 					{
-						alertTitle = embed.Title;
+						foreach (var embed in message.Embeds)
+						{
+							alertTitle = embed.Title;
+						}
+						//alertTitle.debug();
+					}
+					catch (Exception e)
+					{
+						Utils.displayException(e, "foreach (var embed in message.Embeds)");
+					}
+
+					if (alertTitle.Contains("Nitain"))
+					{
+						await message.Channel.SendMessageAsync("<@&482688599201021982>");
+					}
+					else if (alertTitle.Contains("Vauban Neuroptics Blueprint"))
+					{
+						Utils.alert();
 					}
 				}
-				catch (Exception e)
-				{
-					Utils.displayException(e, "foreach (var embed in message.Embeds)");
-				}
-
-				if (alertTitle.Contains("Nitain"))
-				{
-					await message.Channel.SendMessageAsync("<@&482688599201021982>");
-				}
-			}
+			//}
 
 			///////////////////////////////////////////////////////////////////
 			//							  Limited users
@@ -262,25 +262,11 @@ namespace DiscordBot
 
 			if (message_lower.StartsWith("!d"))
 			{
-				/*string msg = "";
-				sendMessageTo(channels["debug"], msg);
-				Console.WriteLine(msg);*/
-
-				/*
-				database.init();
-				database.loadUsers();
-				database.loadMangas();
-				database.addUser("293780484822138881", "ferrone", "nico", 1).aff();
-				database.addUser("150338863234154496", "fluttershy", "luc", 0).aff();
-				database.subTo("150338863234154496", "one-piece").aff();
-				database.makeQuery("UPDATE users SET pseudo=? WHERE uid=?", "Faellyss:227490882033680384").aff();
-				*/
 				try
 				{
-					if (message.Content.Contains("Vauban Neuroptics Blueprint"))
-					{
-						Utils.alert(Program.channels["warframe"],"VAUBAAAAAAAAAAAAAAAN <@&482688599201021982>");
-					}
+					/*string msg = "";
+					sendMessageTo(channels["debug"], msg);
+					Console.WriteLine(msg);*/
 				}
 				catch (Exception e)
 				{
