@@ -12,19 +12,25 @@ results = cursor.execute(''' SELECT * FROM users ''')
 
 display += "```asciidoc:[users]```:"
 for result in results:
-	display += str(result)+":"
+    display += str(result)+":"
 
 results = cursor.execute(''' SELECT * FROM mangas ''')
 
 display += ":```asciidoc:[mangas]```:"
 for result in results:
-	display += str(result)+":"
+    display += str(result)+":"
 
 results = cursor.execute(''' SELECT * FROM subs ''')
 
-display += ":```asciidoc:[subs]```:"
+display += ":```asciidoc:[subs]```::"
 for result in results:
 	display += str(result)+":"
+
+results = cursor.execute(''' SELECT * FROM musics ''')
+
+display += ":```asciidoc:[musics]```:"
+for result in results:
+    display += str(result)+":"
 
 connection.close()
 

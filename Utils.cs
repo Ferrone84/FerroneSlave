@@ -154,7 +154,7 @@ namespace DiscordBot
 			).ToArray());
 		}
 
-		public static string flatSplit(string str, int maxLength = 2000)
+		public static string flatSplit(string str, int maxLength = 1995)
 		{
 			"flatSplit digoulasse".debug();
 			string result = String.Empty;
@@ -162,9 +162,8 @@ namespace DiscordBot
 			int start = 0;
 			while (str.Length >= maxLength)
 			{
-				int end = maxLength - 10;
+				int end = maxLength;
 				result += str.Substring(start, end) + splitChar;
-				start += end;
 				str = str.Remove(0, end);
 			}
 			result += str;
@@ -172,11 +171,10 @@ namespace DiscordBot
 			return result;
 		}
 
-		public static string splitBodies(string content, int maxLength = 2000, string delim = "\n")
+		public static string splitBodies(string content, string delim = "\n", int maxLength = 1995)
 		{
 			if (content.Length < maxLength) { return content; }
 			if (!content.Contains(delim)) { return flatSplit(content, maxLength); }
-			if (content.Contains("\n\n")) { delim = "\n\n"; }
 
 			int start = 0;
 			string buffer = content;
@@ -184,7 +182,7 @@ namespace DiscordBot
 
 			while (buffer.Length >= maxLength)
 			{
-				string tmp = content.Substring(start, maxLength - 5);
+				string tmp = content.Substring(start, maxLength);
 				int lastDelim = tmp.LastIndexOf(delim);
 				if (lastDelim == -1) { return flatSplit(content, maxLength); }
 
@@ -303,7 +301,7 @@ namespace DiscordBot
 				result += "```asciidoc\n[" + kvp.Key + "]```" + kvpValue[0] + "\n" + kvpValue[1] + "\n\n";
 			}
 
-			return splitBodies(result);
+			return splitBodies(result, "\n\n");
 		}
 
 		public static string lastChapter(string message_lower)
@@ -613,18 +611,29 @@ namespace DiscordBot
 			return Program.database.idAdmin(message.Author.Id.ToString());
 		}
 
-		public static void alert()
+		public static void alert(ulong channel, string message = "")
 		{
-			Thread thread = new Thread(simpleAlert);
+			ThreadStart threadMethod = alertCataclysm;
+
+			if (message != String.Empty) 
+			{
+				threadMethod = () => simpleAlert(channel, message);
+			}
+			Thread thread = new Thread(threadMethod);
 			thread.Start();
 		}
 
 		//Privates
-		private async static void simpleAlert()
+		private async static void simpleAlert(ulong channel, string message)
 		{
-			await sendMessageTo(Program.channels["warframe"], "VAUBAAAAAAAAAAAAAAAN <@&482688599201021982>");
-			Thread.Sleep(5000);
-			simpleAlert();
+			await sendMessageTo(channel, message);
+			Thread.Sleep(60000);
+			simpleAlert(channel, message);
+		}
+
+		private async static void alertCataclysm() 
+		{
+			await sendMessageTo(54545454545, "blblbl");
 		}
 
 		//Setups
