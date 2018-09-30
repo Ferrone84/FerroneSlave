@@ -156,34 +156,27 @@ namespace DiscordBot
 					}
 				}
 			}
-			//else if (message.Channel.Id == channels["warframe"])
-			//{
-				if (message.Author.Id == 123591822579597315)
-				{
-					string alertTitle = String.Empty;
-					try
-					{
-						foreach (var embed in message.Embeds)
-						{
-							alertTitle = embed.Title;
-						}
-						//alertTitle.debug();
-					}
-					catch (Exception e)
-					{
-						Utils.displayException(e, "foreach (var embed in message.Embeds)");
-					}
 
-					if (alertTitle.Contains("Nitain"))
+			if (message.Author.Id == 123591822579597315)
+			{
+				string alertTitle = String.Empty;
+				try
+				{
+					foreach (var embed in message.Embeds)
 					{
-						await message.Channel.SendMessageAsync("<@&482688599201021982>");
-					}
-					else if (alertTitle.Contains("Vauban Neuroptics Blueprint"))
-					{
-						Utils.alert();
+						alertTitle = embed.Title;
 					}
 				}
-			//}
+				catch (Exception e)
+				{
+					Utils.displayException(e, "foreach (var embed in message.Embeds)");
+				}
+
+				if (alertTitle.Contains("Nitain"))
+				{
+					await message.Channel.SendMessageAsync("<@&482688599201021982>");
+				}
+			}
 
 			///////////////////////////////////////////////////////////////////
 			//							  Limited users
@@ -264,9 +257,16 @@ namespace DiscordBot
 			{
 				try
 				{
+<<<<<<< HEAD
+					if (message.Content.Contains("Vauban Neuroptics Blueprint"))
+					{
+						Utils.alert(Program.channels["warframe"],"VAUBAAAAAAAAAAAAAAAN <@&482688599201021982>");
+					}
+=======
 					/*string msg = "";
 					sendMessageTo(channels["debug"], msg);
 					Console.WriteLine(msg);*/
+>>>>>>> 5ed7c7ec9623a5d81ff0dcd4553a363dc449a633
 				}
 				catch (Exception e)
 				{
