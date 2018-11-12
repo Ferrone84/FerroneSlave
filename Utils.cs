@@ -310,6 +310,7 @@ namespace DiscordBot
 			try
 			{
 				string manga = message_lower.Split(' ')[1];
+				manga.debug();
 				msg = getLastChapterOf(manga);
 			}
 			catch (ArgumentOutOfRangeException)
@@ -329,6 +330,7 @@ namespace DiscordBot
 
 		public static string getLastChapterOf(string manga)
 		{
+			manga.debug();
 			string site = "https://www.japscan.cc";
 			string url = site + "/mangas/" + manga;
 			Supremes.Nodes.Document document = null;
@@ -348,13 +350,22 @@ namespace DiscordBot
 			var version = "(VF)";
 			try
 			{
+				if (manga == "my-hero-academia") {
+					var words = firstChapterName.Split(" ");
+					var chapterNumber = Int32.Parse(words[4]);
+					if (chapterNumber > 200) {
+						goto Skip;
+					}
+				}
 				version = divChaptersList.Select("ul").Select("li").Select("span")[0].Text;
 			}
-			catch (ArgumentOutOfRangeException) { /*displayException(e, "ArgumentOutOfRangeException, getLastChapterOf(string manga)");*/ }
+			catch (ArgumentOutOfRangeException e) { displayException(e, "ArgumentOutOfRangeException, getLastChapterOf(string manga)"); }
 
 			if (version == "(RAW)")
 				version = "(JAP)";
 
+			version.debug();
+		Skip:
 			return firstChapterName + " **" + version + "** => <" + link + ">";
 		}
 
@@ -712,6 +723,11 @@ namespace DiscordBot
 		public static void debug(this string str)
 		{
 			Console.WriteLine("/" + str + "/");
+		}
+
+		public static void debug(this int i)
+		{
+			Console.WriteLine("/" + i + "/");
 		}
 		
 		public static void debug<T>(this List<T> list)

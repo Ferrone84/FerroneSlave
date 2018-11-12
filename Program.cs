@@ -157,7 +157,7 @@ namespace DiscordBot
 				}
 			}
 
-			if (message.Author.Id == 123591822579597315)
+			if (message.Author.Id == 123591822579597315 && false) //disabled for now
 			{
 				string alertTitle = String.Empty;
 				try
