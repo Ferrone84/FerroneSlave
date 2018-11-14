@@ -255,15 +255,9 @@ namespace DiscordBot
 
 		public static int CountIterations(string sentence, string word)
 		{
-			int it = 0;
-			string[] split = sentence.Split(' ');
-			for (int i = 0; i < split.Length; i++)
-			{
-				if (split[i].Contains(word))
-					it++;
-			}
-
-			return it;
+			Regex regex = new Regex(word);
+			var matches = regex.Matches(sentence);
+			return matches.Count();
 		}
 
 		public static bool SentenceContainsWord(string sentence, string word)
@@ -330,7 +324,7 @@ namespace DiscordBot
 
 		public static string getLastChapterOf(string manga)
 		{
-			manga.debug();
+//			manga.debug();
 			string site = "https://www.japscan.cc";
 			string url = site + "/mangas/" + manga;
 			Supremes.Nodes.Document document = null;
@@ -359,12 +353,12 @@ namespace DiscordBot
 				}
 				version = divChaptersList.Select("ul").Select("li").Select("span")[0].Text;
 			}
-			catch (ArgumentOutOfRangeException e) { displayException(e, "ArgumentOutOfRangeException, getLastChapterOf(string manga)"); }
+			catch (ArgumentOutOfRangeException e) { /*displayException(e, "ArgumentOutOfRangeException, getLastChapterOf(string manga)");*/ }
 
 			if (version == "(RAW)")
 				version = "(JAP)";
 
-			version.debug();
+//			version.debug();
 		Skip:
 			return firstChapterName + " **" + version + "** => <" + link + ">";
 		}

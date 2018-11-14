@@ -406,10 +406,11 @@ namespace DiscordBot
 			int it = Utils.CountIterations(message.ToString().ToLower(), "bite");
 			string pepe = "<:pepe:329281047730585601> ";
 			string msg = String.Empty;
-			for (int i = 0; i < it; i++)
+			for (int i = 0; i < it; i++) {
 				msg += pepe;
+			}
 
-			return msg;
+			return Utils.splitBodies(msg, " ");
 		}
 
 		private string musiqueGenie(SocketMessage message)

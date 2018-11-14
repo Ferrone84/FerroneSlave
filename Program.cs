@@ -224,7 +224,14 @@ namespace DiscordBot
 					else if (autres.Contains(action.Item1) && message_lower.Contains(action.Item1))
 					{
 						string msg = action.Item3.Invoke(message);
-						if (msg != String.Empty) { await message.Channel.SendMessageAsync(msg); }
+						if (msg.Contains(Utils.splitChar.ToString()))
+						{
+							foreach (string ms in msg.Split(Utils.splitChar))
+							{
+								await message.Channel.SendMessageAsync(ms);
+							}
+						}
+						else if (msg != String.Empty) { await message.Channel.SendMessageAsync(msg); }
 					}
 				}
 			}
