@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Collections.Generic;
 
 using System.IO;
@@ -15,6 +16,7 @@ namespace DiscordBot
 		{
 			actions = new List<Tuple<string, string, Func<SocketMessage, string>>>();
 
+			add("!help", "Affiche toutes les options.", help);
 			add("!ping", "Affiche le ping du bot.", ping);
 			add("!date", "Affiche la date.", date);
 			add("!flip", "Lance une table.", flip);
@@ -29,7 +31,9 @@ namespace DiscordBot
 			add("!subto", "Permet de s'abonner au manga précisé. (!subto one-piece)", subTo);
 			add("!unsubto", "Permet de se désabonner du manga précisé. (!unsubto one-piece)", unsubTo);
 			add("!sublist", "Affiche la liste de tous les abonnements aux mangas.", subList);
-			add("!help", "Affiche toutes les options.", help);
+			add("!catch", "Permet de savoir le % de chance de capture du pokemon ou d'obtenir son catchRate.", pokemonCatch);
+			add("!rtier", "Permet de savoir la rareté d'un pokemon (rarityTier).", pokemonRarityTier);
+			add("!pokemon", "Permet d'afficher les infos d'un pokemon.", allPokemonInfo);
 
 			add("!!display", "Affiche la bdd.", displayBdd);
 			add("!!adduser", "Ajoute un utilisateur à la bdd.", addUser);
@@ -60,6 +64,7 @@ namespace DiscordBot
 			add("sancho", "Le génie de Brook.", sancho);
 			add("detroit", "Cqfd.", detroitSmash);
 			add("smash", "Cqfd.", detroitSmash);
+			add("repent", "YOU WILL HAVE TO REPENT TO THIS MAN.", repent);
 		}
 
 		private void add(string command, string description, Func<SocketMessage, string> method)
@@ -99,6 +104,11 @@ namespace DiscordBot
 		///////////////////////////////////////////////////////////////////
 		//							Les commandes
 		///////////////////////////////////////////////////////////////////
+
+		private string help(SocketMessage message)
+		{
+			return Utils.displayAllActions();
+		}
 
 		private string ping(SocketMessage message)
 		{
@@ -215,9 +225,64 @@ namespace DiscordBot
 			return msg;
 		}
 
-		private string help(SocketMessage message)
+		private string pokemonRarityTier(SocketMessage message) {
+			string msg = String.Empty;
+			string message_lower = message.Content.ToLower();
+
+			var words = message_lower.Split(" ");
+			int words_length = words.Length;
+
+			if (words_length == 2) {
+				msg = Utils.getPokemonRarityTier(words[1]);
+			}
+			else {
+				msg = "This command can be use like this : !command Charizard";
+			}
+
+			return msg;
+		}
+		
+		private string pokemonCatch(SocketMessage message)
 		{
-			return Utils.displayAllActions();
+			string msg = "This command can be used by two diffents ways: \n1 - Just the pokemon name after the command, will send you his catch rate.\n2 - The second way will sent you his % chance of being catch : `!command life_percent catch_rate bonus_ball bonus_statut` => `!command 100 45 2 2`.";;
+			string message_lower = message.Content.ToLower();
+
+			var words = message_lower.Split(" ");
+			int words_length = words.Length;
+
+			try {
+				if (words_length == 2) {
+					msg = Utils.getPokemonCatchRate(words[1]);
+				}
+				else if (words_length == 5) {
+					float hp_percent = float.Parse(words[1], CultureInfo.InvariantCulture.NumberFormat);
+					float catch_rate = float.Parse(words[2], CultureInfo.InvariantCulture.NumberFormat);
+					float bonus_ball = float.Parse(words[3], CultureInfo.InvariantCulture.NumberFormat);
+					float bonus_statut = float.Parse(words[4], CultureInfo.InvariantCulture.NumberFormat);
+					
+					msg = Utils.getPokemonCatchChances(hp_percent, catch_rate, bonus_ball, bonus_statut) + "%";
+				}
+			} 
+			catch (Exception e) {
+				Utils.displayException(e);
+			}
+
+			return msg;
+		}
+
+		private string allPokemonInfo(SocketMessage message)
+		{
+			string msg = String.Empty;
+			string message_lower = message.Content.ToLower();
+
+			var words = message_lower.Split(" ");
+			int words_length = words.Length;
+
+			if (words_length != 2) {
+				msg = "This command can be use like this : !command Charizard";
+			}
+
+			return msg;
 		}
 
 
@@ -451,6 +516,11 @@ namespace DiscordBot
 		private string detroitSmash(SocketMessage message)
 		{
 			return "https://giphy.com/gifs/hero-smash-boku-XE8j547LpglrO";
+		}
+
+		private string repent(SocketMessage message)
+		{
+			return "https://cdn.discordapp.com/attachments/309407896070782976/515615289988087808/repent.mp4";
 		}
 	}
 }

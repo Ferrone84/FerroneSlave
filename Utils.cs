@@ -32,6 +32,8 @@ namespace DiscordBot
 		public static string PYTHON_DIR_PATH = @"resources/python/";
 		public static string TOKEN_FILE_NAME = @"resources/token.txt";
 		public static string TRAJETS_FILE_NAME = @"resources/trajets.txt";
+		public static string POKEMONS_FILE_NAME = @"resources/pokemons.p";
+		public static string ERRORSLOG_FILE_NAME = @"resources/errors.txt";
 		public static string MANGASDATA_FILE_NAME = @"resources/data.txt";
 
 		public static string PYTHON_EXE = @"C:\Users\utilisateur\AppData\Local\Programs\Python\Python37\python.exe";
@@ -324,7 +326,6 @@ namespace DiscordBot
 
 		public static string getLastChapterOf(string manga)
 		{
-//			manga.debug();
 			string site = "https://www.japscan.cc";
 			string url = site + "/mangas/" + manga;
 			Supremes.Nodes.Document document = null;
@@ -344,7 +345,7 @@ namespace DiscordBot
 			var version = "(VF)";
 			try
 			{
-				if (manga == "my-hero-academia") {
+				if (manga == "my-hero-academia") { //TODO mettre un meilleur scotch que ça
 					var words = firstChapterName.Split(" ");
 					var chapterNumber = Int32.Parse(words[4]);
 					if (chapterNumber > 200) {
@@ -353,12 +354,10 @@ namespace DiscordBot
 				}
 				version = divChaptersList.Select("ul").Select("li").Select("span")[0].Text;
 			}
-			catch (ArgumentOutOfRangeException e) { /*displayException(e, "ArgumentOutOfRangeException, getLastChapterOf(string manga)");*/ }
+			catch (ArgumentOutOfRangeException) { /*displayException(e, "ArgumentOutOfRangeException, getLastChapterOf(string manga)");*/ }
 
 			if (version == "(RAW)")
 				version = "(JAP)";
-
-//			version.debug();
 		Skip:
 			return firstChapterName + " **" + version + "** => <" + link + ">";
 		}
@@ -628,6 +627,72 @@ namespace DiscordBot
 			thread.Start();
 		}
 
+		public static void savePokemons() {
+			string allText = System.IO.File.ReadAllText(POKEMONS_FILE_NAME);
+			string[] pokemons = allText.Split("<pokemon>\r\n");
+			
+			foreach (string pokemon in pokemons) {
+				string[] infos = pokemon.Split("\r\n");
+				
+				int id = Int32.Parse(infos[0]);
+				string urlIcon = infos[1];
+				string name = infos[2].ToLower();
+				int catchRate = Int32.Parse(infos[3]);
+				int rarityTier = Int32.Parse(infos[4]);
+
+				Program.database.addPokemon(id, urlIcon, name, catchRate, rarityTier);
+			}
+		}
+
+		public static string getPokemonCatchRate(String pokemonName) {
+			return Program.database.getPokemonInfo(pokemonName, Program.PokemonInfo.name, Program.PokemonInfo.catchRate);
+		}
+
+		public static string getPokemonRarityTier(String pokemonName) {
+			return Program.database.getPokemonInfo(pokemonName, Program.PokemonInfo.name, Program.PokemonInfo.rarityTier);
+		}
+
+		public static string getPokemonCatchChances(float hp_percent, float catch_rate, float bonus_ball, float bonus_statut) {
+			double formula = (1 - (2/3.0) * (hp_percent/100.0)) * catch_rate * bonus_ball * bonus_statut;
+
+			return formula.ToString("0.00");
+		}
+
+		public static Embed getAllPokemonInfo(String pokemonName) {
+			string pokemonInfos = Program.database.getPokemonInfos(pokemonName);
+			if (pokemonInfos == String.Empty) {
+				return null;
+			}
+
+			pokemonInfos = pokemonInfos.Replace("(", "");
+			pokemonInfos = pokemonInfos.Replace(")", "");
+			pokemonInfos = pokemonInfos.Replace("'", "");
+			pokemonInfos = pokemonInfos.Replace("///", "://");
+			string[] infos = pokemonInfos.Split(", ");
+
+			int id = Int32.Parse(infos[1]);
+			string urlIcon = infos[2];
+			int catchRate = Int32.Parse(infos[4]);
+			int rarityTier = Int32.Parse(infos[5]);
+			pokemonName = char.ToUpper(pokemonName[0]) + pokemonName.Substring(1);
+
+			EmbedBuilder builder = new EmbedBuilder() {
+				Title = "-- " + pokemonName + " --",
+				Description = "Pokemon info:",
+				Color = new Color(89, 181, 255)
+			};
+
+			builder.ThumbnailUrl = urlIcon;
+
+			builder.AddField("ID", id);
+			builder.AddField("Catch rate", catchRate, true);
+			builder.AddField("Rarity tier", rarityTier, true);
+
+			return builder.Build();
+		}
+
+
+
 		//Privates
 		private async static void simpleAlert(ulong channel, string message)
 		{
@@ -699,45 +764,48 @@ namespace DiscordBot
 
 	static class Extensions
 	{
-		public static void aff(this string str)
+		public static void debug<T>(this T t)
 		{
-			Console.WriteLine(str);
+			Console.WriteLine("/" + t + "/");
 		}
 
-		public static void aff(this int entier)
+		public static void debug<T>(this T[] list)
 		{
-			Console.WriteLine(entier);
-		}
+			int count = 0;
+			Console.WriteLine("Liste : ");
 
-		public static void aff(this bool var)
-		{
-			Console.WriteLine(var);
-		}
-		
-		public static void debug(this string str)
-		{
-			Console.WriteLine("/" + str + "/");
-		}
-
-		public static void debug(this int i)
-		{
-			Console.WriteLine("/" + i + "/");
+			foreach (var line in list)
+			{
+				Console.WriteLine("[" + count + "] : /" + line + "/");
+				count++;
+			}
+			Console.WriteLine("");
 		}
 		
 		public static void debug<T>(this List<T> list)
 		{
+			int count = 0;
+			Console.WriteLine("Liste : ");
+
 			foreach (var line in list)
 			{
-				Console.WriteLine("/" + line + "/");
+				Console.WriteLine("[" + count + "] : /" + line + "/");
+				count++;
 			}
+			Console.WriteLine("");
 		}
 		
 		public static void debug<T, G>(this Dictionary<T, G> dict)
 		{
+			int count = 0;
+			Console.WriteLine("Dictionnary : ");
+
 			foreach (var line in dict)
 			{
-				Console.WriteLine("/" + line.Key + "/ : /" + line.Value + "/");
+				Console.WriteLine("[" + count + "] : /" + line.Key + "/ : /" + line.Value + "/");
+				count++;
 			}
+			Console.WriteLine("");
 		}
 	}
 }

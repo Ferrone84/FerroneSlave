@@ -48,12 +48,13 @@ namespace DiscordBot
 					}
 
 					string username = user.Username.Replace(' ', '-');
-					if (user.Id == 150338863234154496)
+					if (user.Id == 150338863234154496) {
 						username = "Fluttershy";
+					}
 
 					try
 					{
-						addUser(user.Id.ToString(), username, "a", admin).aff();
+						addUser(user.Id.ToString(), username, "a", admin);
 					}
 					catch (Exception e)
 					{
@@ -114,6 +115,14 @@ namespace DiscordBot
 			string query = "INSERT INTO musics (title) VALUES (?)".Replace(' ', ':');
 
 			return Utils.runPython("query_executor.py", query, title.Replace(':', '/')).Replace(':', '\n');
+		}
+
+		public string addPokemon(int uid, string urlIcon, string name, int catchRate, int rarityTier)
+		{
+			string query = "INSERT INTO pokemons (uid, urlIcon, name, catchRate, rarityTier) VALUES (?,?,?,?,?)".Replace(' ', ':');
+			string values = uid + ":" + urlIcon.Replace(':', '/') + ":" + name + ":" + catchRate + ":" + rarityTier;
+
+			return Utils.runPython("query_executor.py", query, values).Replace(':', '\n');
 		}
 
 		public string subTo(string uid, string manga)
@@ -252,6 +261,81 @@ namespace DiscordBot
 			}
 
 			return users;
+		}
+		
+		public string getPokemonInfo(string info, Program.PokemonInfo pokemonInfoWhere, Program.PokemonInfo pokemonInfoReturn) {
+			string select = String.Empty; //return
+			string where = String.Empty; //where
+
+			switch (pokemonInfoReturn)
+			{
+				case Program.PokemonInfo.id:
+					select = "uid";
+				break;
+				case Program.PokemonInfo.urlIcon:
+					select = "urlIcon";
+				break;
+				case Program.PokemonInfo.name:
+					select = "name";
+				break;
+				case Program.PokemonInfo.catchRate:
+					select = "catchRate";
+				break;
+				case Program.PokemonInfo.rarityTier:
+					select = "rarityTier";
+				break;
+			}
+
+			switch (pokemonInfoWhere)
+			{
+				case Program.PokemonInfo.id:
+					where = "uid";
+				break;
+				case Program.PokemonInfo.urlIcon:
+					where = "urlIcon";
+				break;
+				case Program.PokemonInfo.name:
+					where = "name";
+				break;
+				case Program.PokemonInfo.catchRate:
+					where = "catchRate";
+				break;
+				case Program.PokemonInfo.rarityTier:
+					where = "rarityTier";
+				break;
+			}
+			
+			string result = makeQuery("SELECT "+select+" FROM pokemons WHERE "+where+"=?", info);
+			if (result == String.Empty) {
+				return "L'info '"+info+"' n'existe pas.";
+			}
+
+			switch (pokemonInfoReturn)
+			{
+				case Program.PokemonInfo.id:
+					result = Utils.onlyKeepDigits(result);
+				break;
+				case Program.PokemonInfo.urlIcon:
+					result = Utils.removeChars(result, new List<char>() { '(', '\'', ')', ',' });
+					result = result.Replace("///", "://");
+				break;
+				case Program.PokemonInfo.name:
+					result = Utils.onlyKeepLetters(result);
+				break;
+				case Program.PokemonInfo.catchRate:
+					result = Utils.onlyKeepDigits(result);
+				break;
+				case Program.PokemonInfo.rarityTier:
+					result = Utils.onlyKeepDigits(result);
+				break;
+			}
+			
+			return result;
+		}
+
+		public string getPokemonInfos(string pokemonName) {
+			string result = makeQuery("SELECT * FROM pokemons WHERE name=?", pokemonName);
+			return result;
 		}
 
 

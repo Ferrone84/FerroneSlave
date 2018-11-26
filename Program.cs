@@ -24,6 +24,14 @@ namespace DiscordBot
 			{ "peguts",         392118626561294346 }
 		};
 
+		public enum PokemonInfo {
+			id,
+			urlIcon,
+			name,
+			catchRate,
+			rarityTier
+		}
+
 
 		public static DiscordSocketClient _client;
 		public static CancellationTokenSource delay_controller;
@@ -242,14 +250,34 @@ namespace DiscordBot
 			}
 
 			///////////////////////////////////////////////////////////////////
+			//							  Embeds
+			///////////////////////////////////////////////////////////////////
+			try {
+				if (message_lower.StartsWith("!pokemon")) {
+					var words = message_lower.Split(" ");
+					int words_length = words.Length;
+
+					if (words_length == 2) {
+						var embed = Utils.getAllPokemonInfo(words[1]);
+						if (embed != null) {
+							await message.Channel.SendMessageAsync("", false, embed);
+						}
+						else {
+							await message.Channel.SendMessageAsync("Le pokemon '"+words[1]+"' n'existe pas.");
+						}
+					}
+				}
+			}
+			catch (Exception e)
+			{
+				Utils.displayException(e, "Main embed actions");
+				await message.Channel.SendMessageAsync("La commande n'as pas fonctionnée comme prévu.");
+			}
+
+			///////////////////////////////////////////////////////////////////
 			//							  Automatique
 			///////////////////////////////////////////////////////////////////
 
-			/*if (message_lower.Contains("#") && message.Author.Username != "Ferrone")
-			{
-				string msg = "Les hashtags c'est démodé quand même :/ depuis 2012 connard.";
-				await message.Channel.SendMessageAsync(msg);
-			}*/
 			if ((message_lower.Contains("bald") && message_lower.Contains("signal")) || message_lower.Contains("baldsignal"))
 			{
 				string msg = "<@" + master_id + ">";
@@ -264,15 +292,14 @@ namespace DiscordBot
 			{
 				try
 				{
-					/*string msg = "";
-					sendMessageTo(channels["debug"], msg);
-					Console.WriteLine(msg);*/
+					
 				}
 				catch (Exception e)
 				{
 					Utils.displayException(e, "!d");
-					foreach (var errors in Utils.splitBodies(e.Message + "\n" + e.StackTrace).Split(Utils.splitChar))
+					foreach (var errors in Utils.splitBodies(e.Message + "\n" + e.StackTrace).Split(Utils.splitChar)) {
 						await message.Channel.SendMessageAsync(errors);
+					}
 				}
 
 				return;
