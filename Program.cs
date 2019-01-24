@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Net;
+using System.IO;
+using System.Text;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -24,7 +27,8 @@ namespace DiscordBot
 			{ "peguts",         392118626561294346 }
 		};
 
-		public enum PokemonInfo {
+		public enum PokemonInfo
+		{
 			id,
 			urlIcon,
 			name,
@@ -42,7 +46,8 @@ namespace DiscordBot
 		public static SocketGuild guild;
 		public static List<string> autres;
 		public static List<string> pp_songs;
-		public static List<string> baned_people;
+		public static List<ulong> baned_people;
+		public static Dictionary<ulong, int> people_spam;
 		public static SortedDictionary<string, string> mangasData;
 
 		public static void Main(string[] args)
@@ -55,41 +60,40 @@ namespace DiscordBot
 			_client.Log += Log;
 			_client.Ready += ready;
 			_client.MessageReceived += MessageReceived;
+			_client.MessageReceived += MessageReceivedBanListener;
+			_client.ReactionAdded += ReactionAdded;
 			delay_controller = new CancellationTokenSource();
 
 			await _client.LoginAsync(TokenType.Bot, Utils.getToken());
 			await _client.StartAsync();
 
-			Console.CancelKeyPress += async delegate (object sender, ConsoleCancelEventArgs e)
-			{
+			Console.CancelKeyPress += async delegate (object sender, ConsoleCancelEventArgs e) {
 				e.Cancel = true;
 				await deconnection();
 			};
 
 			// Block this task until the program is closed.
-			try
-			{
+			try {
 				await Task.Delay(-1, delay_controller.Token);
 			}
-			catch (TaskCanceledException)
-			{
+			catch (TaskCanceledException) {
 				await deconnection();
 			}
 		}
 
 		private async Task deconnection()
 		{
-			try
-			{
+			try {
 				Console.WriteLine("Le bot a bien été coupé.");
 				_client.MessageReceived -= MessageReceived;
+				_client.MessageReceived -= MessageReceivedBanListener;
+				_client.ReactionAdded -= ReactionAdded;
 				await _client.LogoutAsync();
 				await _client.StopAsync();
 				_client.Dispose();
 				Environment.Exit(0);
 			}
-			catch (Exception e)
-			{
+			catch (Exception e) {
 				Utils.displayException(e, "deconnection");
 			}
 		}
@@ -108,7 +112,8 @@ namespace DiscordBot
 			database = new Database();
 			autres = new List<string>();
 			pp_songs = new List<string>();
-			baned_people = new List<string>();
+			baned_people = new List<ulong>();
+			people_spam = new Dictionary<ulong, int>();
 			mangasData = new SortedDictionary<string, string>();
 
 			//mes setups
@@ -119,24 +124,68 @@ namespace DiscordBot
 			guild = _client.GetGuild(309407896070782976);
 
 			//Thread qui regarde les nouveaux scans
-			Thread thread = new Thread(Utils.getAllNewChapters);
-			thread.Start();
+			//Thread thread = new Thread(Utils.getAllNewChapters);
+			//thread.Start();
 
-			//Thread qui regarde le temps de trajets
-			//Thread traffic_thread = new Thread(fillTrafficData);
-			//traffic_thread.Start();
+			Thread mangas_thread = new Thread(Utils.mangasCrawlerOnLireScanV2);
+			mangas_thread.Start();
+
+			Thread people_spam_thread = new Thread(Utils.emptyBannedPeopleStack);
+			people_spam_thread.Start();
 
 			await Utils.sendMessageTo(channels["debugs"], "Bot ready");
 		}
+
+		private async Task ReactionAdded(Cacheable<IUserMessage, ulong> cachedMessage, ISocketMessageChannel channel, SocketReaction reaction)
+		{
+			try {
+				//if (reaction.Channel.Id == channels["musique"]) {
+				if (reaction.UserId == master_id && reaction.Emote.ToString() == "❎") {
+					IUserMessage message = channel.GetMessageAsync(cachedMessage.Id).Result as IUserMessage;
+					string result = database.removeMusic(Utils.getYtLink(message.Content));
+					if (result == String.Empty) {
+						await message.RemoveAllReactionsAsync();
+						await message.AddReactionAsync(new Emoji("💀"));
+						await Utils.sendMessageTo(channels["debugs"], "Message n°" + reaction.MessageId + " deleted from musique database. (" + message.Content + ")");
+					}
+				}
+				//}
+			}
+			catch (Exception e) {
+				Utils.displayException(e, "ReactionAdded");
+			}
+		}
+
+		private async Task MessageReceivedBanListener(SocketMessage message)
+		{
+			if (baned_people.Contains(message.Author.Id) || message.Author.IsBot || message.Author.Id == master_id) {
+				return;
+			}
+
+			ulong authorId = message.Author.Id;
+			if (!people_spam.ContainsKey(authorId)) {
+				people_spam.Add(authorId, 0);
+			}
+			else {
+				people_spam[authorId]++;
+			}
+
+			foreach (KeyValuePair<ulong, int> kvp in people_spam) {
+				if (kvp.Value > 4) {
+					SocketUser user = _client.GetUser(kvp.Key);
+					await message.Channel.SendMessageAsync("You, [" + user.Mention + "], are a spammer ! You got banned from the bot-services for undetermined time !");
+					baned_people.Add(kvp.Key);
+				}
+			}
+		}
+
 
 		private async Task MessageReceived(SocketMessage message)
 		{
 			string message_lower = message.Content.ToLower();
 
-			if (message.Author.Id == master_id)
-			{
-				if (message_lower == "/q")
-				{
+			if (message.Author.Id == master_id) {
+				if (message_lower == "/q") {
 					delay_controller.Cancel();
 					return;
 				}
@@ -146,21 +195,17 @@ namespace DiscordBot
 			//							  Channels actions
 			///////////////////////////////////////////////////////////////////
 
-			if (message.Channel.Id == channels["musique"])
-			{
+			if (message.Channel.Id == channels["musique"]) {
 				string msg = String.Empty;
 
-				if ((msg = Utils.getYtLink(message.Content)) != String.Empty)
-				{
-					try
-					{
+				if ((msg = Utils.getYtLink(message.Content)) != String.Empty) {
+					try {
 						database.addMusic(msg);
-						await ((SocketUserMessage)message).AddReactionAsync(new Emoji("✅"));
+						await ((SocketUserMessage) message).AddReactionAsync(new Emoji("✅"));
 					}
-					catch (Exception)
-					{
+					catch (Exception) {
 						var emote = await guild.GetEmoteAsync(452977127722188811);
-						await ((SocketUserMessage)message).AddReactionAsync(emote);
+						await ((SocketUserMessage) message).AddReactionAsync(emote);
 					}
 				}
 			}
@@ -168,20 +213,16 @@ namespace DiscordBot
 			if (message.Author.Id == 123591822579597315 && false) //disabled for now
 			{
 				string alertTitle = String.Empty;
-				try
-				{
-					foreach (var embed in message.Embeds)
-					{
+				try {
+					foreach (var embed in message.Embeds) {
 						alertTitle = embed.Title;
 					}
 				}
-				catch (Exception e)
-				{
+				catch (Exception e) {
 					Utils.displayException(e, "foreach (var embed in message.Embeds)");
 				}
 
-				if (alertTitle.Contains("Nitain"))
-				{
+				if (alertTitle.Contains("Nitain")) {
 					await message.Channel.SendMessageAsync("<@&482688599201021982>");
 				}
 			}
@@ -189,8 +230,7 @@ namespace DiscordBot
 			///////////////////////////////////////////////////////////////////
 			//							  Limited users
 			///////////////////////////////////////////////////////////////////
-			if (baned_people.Contains(message.Author.Id.ToString()) || message.Author.IsBot)
-			{
+			if (baned_people.Contains(message.Author.Id) || message.Author.IsBot) {
 				return;
 			}
 
@@ -199,10 +239,8 @@ namespace DiscordBot
 			//							  Execute command
 			///////////////////////////////////////////////////////////////////
 
-			try
-			{
-				if (message_lower.StartsWith("!!") && !Utils.verifyAdmin(message))
-				{
+			try {
+				if (message_lower.StartsWith("!!") && !Utils.verifyAdmin(message)) {
 					if (actions.actionExist(message_lower))
 						await message.Channel.SendMessageAsync("Wesh t'es pas admin kestu fais le fou avec moi ?");
 					else
@@ -210,18 +248,14 @@ namespace DiscordBot
 					goto End;
 				}
 
-				foreach (var action in actions.getActions)
-				{
-					if (message_lower.StartsWith(action.Item1))
-					{
+				foreach (var action in actions.getActions) {
+					if (message_lower.StartsWith(action.Item1)) {
 						string msg = action.Item3.Invoke(message);
 
 						if (message_lower.StartsWith("$")) { Utils.DeleteMessage(message); }
 
-						if (msg.Contains(Utils.splitChar.ToString()))
-						{
-							foreach (string ms in msg.Split(Utils.splitChar))
-							{
+						if (msg.Contains(Utils.splitChar.ToString())) {
+							foreach (string ms in msg.Split(Utils.splitChar)) {
 								await message.Channel.SendMessageAsync(ms);
 							}
 						}
@@ -229,13 +263,10 @@ namespace DiscordBot
 
 						break;
 					}
-					else if (autres.Contains(action.Item1) && message_lower.Contains(action.Item1))
-					{
+					else if (autres.Contains(action.Item1) && message_lower.Contains(action.Item1)) {
 						string msg = action.Item3.Invoke(message);
-						if (msg.Contains(Utils.splitChar.ToString()))
-						{
-							foreach (string ms in msg.Split(Utils.splitChar))
-							{
+						if (msg.Contains(Utils.splitChar.ToString())) {
+							foreach (string ms in msg.Split(Utils.splitChar)) {
 								await message.Channel.SendMessageAsync(ms);
 							}
 						}
@@ -243,8 +274,7 @@ namespace DiscordBot
 					}
 				}
 			}
-			catch (Exception e)
-			{
+			catch (Exception e) {
 				Utils.displayException(e, "Main foreach actions");
 				await message.Channel.SendMessageAsync("La commande n'as pas fonctionnée comme prévu.");
 			}
@@ -263,13 +293,12 @@ namespace DiscordBot
 							await message.Channel.SendMessageAsync("", false, embed);
 						}
 						else {
-							await message.Channel.SendMessageAsync("Le pokemon '"+words[1]+"' n'existe pas.");
+							await message.Channel.SendMessageAsync("Le pokemon '" + words[1] + "' n'existe pas.");
 						}
 					}
 				}
 			}
-			catch (Exception e)
-			{
+			catch (Exception e) {
 				Utils.displayException(e, "Main embed actions");
 				await message.Channel.SendMessageAsync("La commande n'as pas fonctionnée comme prévu.");
 			}
@@ -278,8 +307,7 @@ namespace DiscordBot
 			//							  Automatique
 			///////////////////////////////////////////////////////////////////
 
-			if ((message_lower.Contains("bald") && message_lower.Contains("signal")) || message_lower.Contains("baldsignal"))
-			{
+			if ((message_lower.Contains("bald") && message_lower.Contains("signal")) || message_lower.Contains("baldsignal")) {
 				string msg = "<@" + master_id + ">";
 				await message.Channel.SendMessageAsync(msg);
 			}
@@ -288,14 +316,11 @@ namespace DiscordBot
 			//							  Debug Zone
 			///////////////////////////////////////////////////////////////////
 
-			if (message_lower.StartsWith("!d"))
-			{
-				try
-				{
-					
+			if (message_lower.StartsWith("!d")) {
+				try {
+
 				}
-				catch (Exception e)
-				{
+				catch (Exception e) {
 					Utils.displayException(e, "!d");
 					foreach (var errors in Utils.splitBodies(e.Message + "\n" + e.StackTrace).Split(Utils.splitChar)) {
 						await message.Channel.SendMessageAsync(errors);

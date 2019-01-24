@@ -26,7 +26,7 @@ cursor.execute('''CREATE TABLE musics
 
 cursor.execute('''DROP TABLE IF EXISTS pokemons''')
 cursor.execute('''CREATE TABLE pokemons
-			  (id INTEGER PRIMARY KEY AUTOINCREMENT, uid INTEGER NOT NULL UNIQUE, urlIcon varchar NOT NULL, name varchar NOT NULL, catchRate INTEGER NOT NULL CHECK(typeof(catchRate) = 'integer'), rarityTier INTEGER NOT NULL CHECK(typeof(rarityTier) = 'integer'))''')
+			  (id INTEGER PRIMARY KEY AUTOINCREMENT, uid INTEGER NOT NULL UNIQUE, urlIcon varchar NOT NULL, name varchar NOT NULL, name_fr varchar NOT NULL, catchRate INTEGER NOT NULL CHECK(typeof(catchRate) = 'integer'), rarityTier INTEGER NOT NULL CHECK(typeof(rarityTier) = 'integer'))''')
 
 
 # values = [(293780484822138881, "ferrone", "nico", True)]

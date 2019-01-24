@@ -36,6 +36,8 @@ namespace DiscordBot
 			add("!pokemon", "Permet d'afficher les infos d'un pokemon.", allPokemonInfo);
 
 			add("!!display", "Affiche la bdd.", displayBdd);
+			add("!!ban", "Ajoute un utilisateur à la liste des utilisatteurs bannis.", banUser);
+			add("!!unban", "Retire un utilisateur de la liste des utilisateurs bannis.", unbanUser);
 			add("!!adduser", "Ajoute un utilisateur à la bdd.", addUser);
 			add("!!savebdd", "Sauvegarde la bdd.", saveBdd);
 			add("!!restbdd", "Restaure la bdd.", restBdd);
@@ -62,9 +64,9 @@ namespace DiscordBot
 			add("evidemment", "Meme Antoine Daniel.", evidemment);
 			add("omae", "NANI !?", omae);
 			add("sancho", "Le génie de Brook.", sancho);
-			add("detroit", "Cqfd.", detroitSmash);
 			add("smash", "Cqfd.", detroitSmash);
 			add("repent", "YOU WILL HAVE TO REPENT TO THIS MAN.", repent);
+			add("latata", "Do I really need to say something?", latata);
 		}
 
 		private void add(string command, string description, Func<SocketMessage, string> method)
@@ -74,16 +76,14 @@ namespace DiscordBot
 
 		public bool actionExist(string action)
 		{
-			foreach (var act in actions)
-			{
+			foreach (var act in actions) {
 				if (act.Item1 == action)
 					return true;
 			}
 			return false;
 		}
 
-		public List<Tuple<string, string, Func<SocketMessage, string>>> getActions
-		{
+		public List<Tuple<string, string, Func<SocketMessage, string>>> getActions {
 			get { return actions; }
 		}
 
@@ -120,20 +120,16 @@ namespace DiscordBot
 			string _t = String.Empty;
 			string message_lower = message.Content.ToLower();
 
-			if (message_lower.Contains("day"))
-			{
+			if (message_lower.Contains("day")) {
 				_t = DateTime.Now.Day.ToString();
 			}
-			else if (message_lower.Contains("month"))
-			{
+			else if (message_lower.Contains("month")) {
 				_t = DateTime.Now.Month.ToString();
 			}
-			else if (message_lower.Contains("year"))
-			{
+			else if (message_lower.Contains("year")) {
 				_t = DateTime.Now.Year.ToString();
 			}
-			else if (message_lower.Contains("time"))
-			{
+			else if (message_lower.Contains("time")) {
 				_t = DateTime.Now.TimeOfDay.ToString();
 				_t = _t.Remove(8, _t.Length - 8);
 			}
@@ -168,12 +164,10 @@ namespace DiscordBot
 
 		private string scans(SocketMessage message)
 		{
-			try
-			{
+			try {
 				return Utils.displayCompleteMangasList();
 			}
-			catch (Exception e)
-			{
+			catch (Exception e) {
 				Utils.displayException(e, "!scans");
 				return e.Message;
 			}
@@ -225,7 +219,8 @@ namespace DiscordBot
 			return msg;
 		}
 
-		private string pokemonRarityTier(SocketMessage message) {
+		private string pokemonRarityTier(SocketMessage message)
+		{
 			string msg = String.Empty;
 			string message_lower = message.Content.ToLower();
 
@@ -241,10 +236,10 @@ namespace DiscordBot
 
 			return msg;
 		}
-		
+
 		private string pokemonCatch(SocketMessage message)
 		{
-			string msg = "This command can be used by two diffents ways: \n1 - Just the pokemon name after the command, will send you his catch rate.\n2 - The second way will sent you his % chance of being catch : `!command life_percent catch_rate bonus_ball bonus_statut` => `!command 100 45 2 2`.";;
+			string msg = "This command can be used by two diffents ways: \n1 - Just the pokemon name after the command, will send you his catch rate.\n2 - The second way will sent you his % chance of being catch : `!command life_percent catch_rate bonus_ball bonus_statut` => `!command 100 45 2 2`."; ;
 			string message_lower = message.Content.ToLower();
 
 			var words = message_lower.Split(" ");
@@ -259,10 +254,10 @@ namespace DiscordBot
 					float catch_rate = float.Parse(words[2], CultureInfo.InvariantCulture.NumberFormat);
 					float bonus_ball = float.Parse(words[3], CultureInfo.InvariantCulture.NumberFormat);
 					float bonus_statut = float.Parse(words[4], CultureInfo.InvariantCulture.NumberFormat);
-					
+
 					msg = Utils.getPokemonCatchChances(hp_percent, catch_rate, bonus_ball, bonus_statut) + "%";
 				}
-			} 
+			}
 			catch (Exception e) {
 				Utils.displayException(e);
 			}
@@ -295,21 +290,44 @@ namespace DiscordBot
 			return Program.database.display();
 		}
 
+		private string banUser(SocketMessage message)
+		{
+			var msg = "Il faut mettre l'id ou la mention de la personne. Ex : !!ban 227490882033680384";
+			try {
+				var args = message.Content.Split(' ');
+				msg = Utils.banUser(args[1]);
+			}
+			catch (Exception e) {
+				Utils.displayException(e, "!!ban");
+			}
+			return msg;
+		}
+
+		private string unbanUser(SocketMessage message)
+		{
+			var msg = "Il faut mettre l'id ou la mention de la personne. Ex : !!unban 227490882033680384";
+			try {
+				var args = message.Content.Split(' ');
+				msg = Utils.unbanUser(args[1]);
+			}
+			catch (Exception e) {
+				Utils.displayException(e, "!!unban");
+			}
+			return msg;
+		}
+
 		private string addUser(SocketMessage message)
 		{
 			string msg = "Il faut rentrer des arguments. Ex : !!adduser 293780484822138881 ferrone nico";
 
-			if (message.Content.ToLower().Length <= "!!adduser".Length)
-			{
+			if (message.Content.ToLower().Length <= "!!adduser".Length) {
 				return msg;
 			}
-			try
-			{
+			try {
 				var args = message.Content.Split(' ');
 				Program.database.addUser(args[1], args[2], args[3]);
 			}
-			catch (Exception e)
-			{
+			catch (Exception e) {
 				Utils.displayException(e, "!!adduser");
 				return msg;
 			}
@@ -319,12 +337,10 @@ namespace DiscordBot
 
 		private string saveBdd(SocketMessage message)
 		{
-			try
-			{
+			try {
 				File.Copy(Utils.DB_FILE_NAME, Utils.DB_FILE_SAVE, true);
 			}
-			catch (Exception e)
-			{
+			catch (Exception e) {
 				Utils.displayException(e, "saveBdd");
 				return e.Message;
 			}
@@ -334,12 +350,10 @@ namespace DiscordBot
 
 		private string restBdd(SocketMessage message)
 		{
-			try
-			{
+			try {
 				File.Copy(Utils.DB_FILE_SAVE, Utils.DB_FILE_NAME, true);
 			}
-			catch (Exception e)
-			{
+			catch (Exception e) {
 				Utils.displayException(e, "restBdd");
 				return e.Message;
 			}
@@ -349,18 +363,15 @@ namespace DiscordBot
 
 		private string delete(SocketMessage message) //trouver un moyen de rendre ça async sans vomir
 		{
-			try
-			{
+			try {
 				int numberOfDelete = Convert.ToInt32(message.Content.Split(' ')[1]) + 1;
 				var messages = Utils.getMessages(Utils.getChannel(message.Channel.Id), numberOfDelete);
 
-				foreach (var msg in messages)
-				{
+				foreach (var msg in messages) {
 					msg.DeleteAsync();
 				}
 			}
-			catch (Exception e)
-			{
+			catch (Exception e) {
 				Utils.displayException(e, "delete");
 				return "La commande doit être du type !!delete 10";
 			}
@@ -421,20 +432,16 @@ namespace DiscordBot
 			string msg = "LOS ? ";
 			string message_lower = message.Content.ToLower();
 
-			foreach (var user in Program.guild.Users)
-			{
-				foreach (var role in user.Roles)
-				{
-					if (role.Id == 471428502621650947 && user.Id != message.Author.Id)
-					{
+			foreach (var user in Program.guild.Users) {
+				foreach (var role in user.Roles) {
+					if (role.Id == 471428502621650947 && user.Id != message.Author.Id) {
 						msg += "<@" + user.Id + "> ";
 					}
 				}
 			}
 			msg += " - " + message.Author.Username + " veut jouer !";
 
-			if (message_lower != "$los")
-			{
+			if (message_lower != "$los") {
 				msg += " [" + message_lower.Substring(5) + "]";
 			}
 
@@ -521,6 +528,11 @@ namespace DiscordBot
 		private string repent(SocketMessage message)
 		{
 			return "https://cdn.discordapp.com/attachments/309407896070782976/515615289988087808/repent.mp4";
+		}
+
+		private string latata(SocketMessage message)
+		{
+			return "https://www.youtube.com/watch?v=9mQk7Evt6Vs";
 		}
 	}
 }

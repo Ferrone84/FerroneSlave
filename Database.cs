@@ -22,8 +22,7 @@ namespace DiscordBot
 		//à terme ça lancera un script python qui parsera le fichier data.txt
 		public void loadMangas()
 		{
-			foreach (KeyValuePair<string, string> kvp in Program.mangasData)
-			{
+			foreach (KeyValuePair<string, string> kvp in Program.mangasData) {
 				addManga(kvp.Key);
 			}
 		}
@@ -32,16 +31,12 @@ namespace DiscordBot
 		{
 			var users = Program.guild.Users;
 
-			foreach (var user in users)
-			{
-				if (!user.IsBot)
-				{
+			foreach (var user in users) {
+				if (!user.IsBot) {
 					short admin = 0;
 
-					foreach (var role in user.Roles)
-					{
-						if (role.Id == 328899154887835678)
-						{
+					foreach (var role in user.Roles) {
+						if (role.Id == 328899154887835678) {
 							admin = 1;
 							break;
 						}
@@ -52,12 +47,10 @@ namespace DiscordBot
 						username = "Fluttershy";
 					}
 
-					try
-					{
+					try {
 						addUser(user.Id.ToString(), username, "a", admin);
 					}
-					catch (Exception e)
-					{
+					catch (Exception e) {
 						Utils.displayException(e, "Database adduser");
 					}
 				}
@@ -68,18 +61,14 @@ namespace DiscordBot
 		{
 			IEnumerable<IMessage> messages = Utils.getMessages(Utils.getChannel(Program.channels["musique"]));
 
-			foreach (var message in messages)
-			{
+			foreach (var message in messages) {
 				string msg = message.Content;
 
-				if ((msg = Utils.getYtLink(msg)) != String.Empty)
-				{
-					try
-					{
+				if ((msg = Utils.getYtLink(msg)) != String.Empty) {
+					try {
 						addMusic(msg);
 					}
-					catch (Exception e)
-					{
+					catch (Exception e) {
 						Utils.displayException(e, "loadMusics");
 					}
 				}
@@ -117,6 +106,13 @@ namespace DiscordBot
 			return Utils.runPython("query_executor.py", query, title.Replace(':', '/')).Replace(':', '\n');
 		}
 
+		public string removeMusic(string title)
+		{
+			string query = "DELETE FROM musics WHERE title=?".Replace(' ', ':');
+
+			return Utils.runPython("query_executor.py", query, title.Replace(':', '/')).Replace(':', '\n');
+		}
+
 		public string addPokemon(int uid, string urlIcon, string name, int catchRate, int rarityTier)
 		{
 			string query = "INSERT INTO pokemons (uid, urlIcon, name, catchRate, rarityTier) VALUES (?,?,?,?,?)".Replace(' ', ':');
@@ -128,14 +124,12 @@ namespace DiscordBot
 		public string subTo(string uid, string manga)
 		{
 			string mangaId = String.Empty;
-			try
-			{
+			try {
 				mangaId = makeQuery("SELECT id FROM mangas WHERE titre=?", manga);
 				if (mangaId.Equals(String.Empty))
 					return "Le manga '" + manga + "' n'existe pas :/";
 			}
-			catch (Exception e)
-			{
+			catch (Exception e) {
 				Utils.displayException(e, "subTo");
 				return "Le manga '" + manga + "' n'existe pas :/";
 			}
@@ -158,14 +152,12 @@ namespace DiscordBot
 		public string unsubTo(string uid, string manga)
 		{
 			string mangaId = String.Empty;
-			try
-			{
+			try {
 				mangaId = makeQuery("SELECT id FROM mangas WHERE titre=?", manga);
 				if (mangaId.Equals(String.Empty))
 					return "Le manga '" + manga + "' n'existe pas :/";
 			}
-			catch (Exception e)
-			{
+			catch (Exception e) {
 				Utils.displayException(e, "unsubTo");
 				return "Le manga '" + manga + "' n'existe pas :/";
 			}
@@ -192,8 +184,7 @@ namespace DiscordBot
 			if (userId.Equals(String.Empty))
 				return "L'utilisateur n'est pas dans la base de données :/";
 
-			if (user.Equals(String.Empty))
-			{
+			if (user.Equals(String.Empty)) {
 				List<string> users = new List<string>();
 				string usersFlat = makeQuery("SELECT DISTINCT user FROM subs ORDER BY user");
 
@@ -202,8 +193,7 @@ namespace DiscordBot
 				else
 					users.Add(Utils.onlyKeepDigits(usersFlat));
 
-				foreach (string usrId in users)
-				{
+				foreach (string usrId in users) {
 					string usr = Utils.onlyKeepLetters(makeQuery("SELECT pseudo FROM users WHERE id=?", usrId));
 					result += "Abonnements de **" + usr + "** : \n";
 					var mangas = Utils.onlyKeepLetters(
@@ -216,8 +206,7 @@ namespace DiscordBot
 
 				return result;
 			}
-			else
-			{
+			else {
 				return "pas encore implémenté";
 			}
 		}
@@ -255,98 +244,97 @@ namespace DiscordBot
 			if (result == String.Empty)
 				return users;
 
-			foreach (string uid in result.Split('\n'))
-			{
+			foreach (string uid in result.Split('\n')) {
 				users.Add(Convert.ToUInt64(Utils.onlyKeepDigits(uid)));
 			}
 
 			return users;
 		}
-		
-		public string getPokemonInfo(string info, Program.PokemonInfo pokemonInfoWhere, Program.PokemonInfo pokemonInfoReturn) {
+
+		public string getPokemonInfo(string info, Program.PokemonInfo pokemonInfoWhere, Program.PokemonInfo pokemonInfoReturn)
+		{
 			string select = String.Empty; //return
 			string where = String.Empty; //where
 
-			switch (pokemonInfoReturn)
-			{
+			switch (pokemonInfoReturn) {
 				case Program.PokemonInfo.id:
 					select = "uid";
-				break;
+					break;
 				case Program.PokemonInfo.urlIcon:
 					select = "urlIcon";
-				break;
+					break;
 				case Program.PokemonInfo.name:
 					select = "name";
-				break;
+					break;
 				case Program.PokemonInfo.catchRate:
 					select = "catchRate";
-				break;
+					break;
 				case Program.PokemonInfo.rarityTier:
 					select = "rarityTier";
-				break;
+					break;
 			}
 
-			switch (pokemonInfoWhere)
-			{
+			switch (pokemonInfoWhere) {
 				case Program.PokemonInfo.id:
 					where = "uid";
-				break;
+					break;
 				case Program.PokemonInfo.urlIcon:
 					where = "urlIcon";
-				break;
+					break;
 				case Program.PokemonInfo.name:
 					where = "name";
-				break;
+					break;
 				case Program.PokemonInfo.catchRate:
 					where = "catchRate";
-				break;
+					break;
 				case Program.PokemonInfo.rarityTier:
 					where = "rarityTier";
-				break;
-			}
-			
-			string result = makeQuery("SELECT "+select+" FROM pokemons WHERE "+where+"=?", info);
-			if (result == String.Empty) {
-				return "L'info '"+info+"' n'existe pas.";
+					break;
 			}
 
-			switch (pokemonInfoReturn)
-			{
+			string result = makeQuery("SELECT " + select + " FROM pokemons WHERE " + where + "=?", info);
+			if (result == String.Empty) {
+				return "L'info '" + info + "' n'existe pas.";
+			}
+
+			switch (pokemonInfoReturn) {
 				case Program.PokemonInfo.id:
 					result = Utils.onlyKeepDigits(result);
-				break;
+					break;
 				case Program.PokemonInfo.urlIcon:
 					result = Utils.removeChars(result, new List<char>() { '(', '\'', ')', ',' });
 					result = result.Replace("///", "://");
-				break;
+					break;
 				case Program.PokemonInfo.name:
 					result = Utils.onlyKeepLetters(result);
-				break;
+					break;
 				case Program.PokemonInfo.catchRate:
 					result = Utils.onlyKeepDigits(result);
-				break;
+					break;
 				case Program.PokemonInfo.rarityTier:
 					result = Utils.onlyKeepDigits(result);
-				break;
+					break;
 			}
-			
+
 			return result;
 		}
 
-		public string getPokemonInfos(string pokemonName) {
+		public string getPokemonInfos(string pokemonName)
+		{
 			string result = makeQuery("SELECT * FROM pokemons WHERE name=?", pokemonName);
+			if (result == String.Empty) {
+				result = makeQuery("SELECT * FROM pokemons WHERE name_fr=?", pokemonName);
+			}
 			return result;
 		}
 
 
 		public string getLine(string table, string id)
 		{
-			try
-			{
+			try {
 				return makeQuery("SELECT * FROM " + table + " WHERE id=?", id);
 			}
-			catch (Exception e)
-			{
+			catch (Exception e) {
 				Utils.displayException(e, "getLine");
 				return "";
 			}
@@ -354,12 +342,10 @@ namespace DiscordBot
 
 		public string getLineColumn(string table, string column, string id)
 		{
-			try
-			{
+			try {
 				return makeQuery("SELECT " + column + " FROM " + table + " WHERE id=?", id);
 			}
-			catch (Exception e)
-			{
+			catch (Exception e) {
 				Utils.displayException(e, "getLine");
 				return "";
 			}
