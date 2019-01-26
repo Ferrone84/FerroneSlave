@@ -168,7 +168,7 @@ Sandslash
 <pokemon>
 29
 https://prowiki.info/images/e/e0/29Icon.png
-Female
+Nidoranf
 235
 1
 <pokemon>
@@ -186,7 +186,7 @@ Nidoqueen
 <pokemon>
 32
 https://prowiki.info/images/e/e6/32Icon.png
-Male
+Nidoranm
 235
 1
 <pokemon>
@@ -492,7 +492,7 @@ Magneton
 <pokemon>
 83
 https://prowiki.info/images/1/1d/83Icon.png
-d
+Farfetch
 45
 3
 <pokemon>
@@ -1392,7 +1392,7 @@ Donphan
 <pokemon>
 233
 https://prowiki.info/images/f/fd/233Icon.png
-2
+Porygon2
 45
 10
 <pokemon>
@@ -1494,7 +1494,7 @@ Lugia
 <pokemon>
 250
 https://prowiki.info/images/6/6e/250Icon.png
-Oh
+Hooh
 3
 10
 <pokemon>
@@ -2628,7 +2628,7 @@ Bonsly
 <pokemon>
 439
 https://prowiki.info/images/3/36/439Icon.png
-Jr
+MimeJr
 145
 9
 <pokemon>
@@ -2838,7 +2838,7 @@ Mamoswine
 <pokemon>
 474
 https://prowiki.info/images/2/2b/474Icon.png
-Z
+PorygonZ
 30
 10
 <pokemon>

@@ -1,0 +1,5 @@
+bite|3
+!help|1
+!popactions|3
+$rsong|1
+$fs|1

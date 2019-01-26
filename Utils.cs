@@ -33,6 +33,7 @@ namespace DiscordBot
 		public static string LOGS_FILE_NAME = @"resources/logs.txt";
 		public static string PYTHON_DIR_PATH = @"resources/python/";
 		public static string TOKEN_FILE_NAME = @"resources/token.txt";
+		public static string POP_ACTIONS_FILE = @"resources/pop_actions.txt";
 		public static string TRAJETS_FILE_NAME = @"resources/trajets.txt";
 		public static string POKEMONS_FILE_NAME = @"resources/pokemons.p";
 		public static string ERRORSLOG_FILE_NAME = @"resources/errors.txt";
@@ -909,7 +910,7 @@ namespace DiscordBot
 				Program.baned_people.Add(userId_);
 				msg = "L'utilisateur a bien été banni.";
 			}
-			
+
 			return msg;
 		}
 
@@ -925,6 +926,38 @@ namespace DiscordBot
 
 			return msg;
 		}
+
+		public static void actionUsed(string action)
+		{
+			var actions_used = Program.actions_used;
+
+			if (actions_used.ContainsKey(action)) {
+				actions_used[action]++;
+			}
+			else {
+				actions_used.Add(action, 1);
+			}
+
+			string actions = String.Empty;
+
+			foreach (KeyValuePair<string, int> kvp in actions_used) {
+				actions += kvp.Key + splitChar + kvp.Value.ToString() + "\n";
+			}
+
+			File.WriteAllText(POP_ACTIONS_FILE, actions);
+		}
+
+		public static string getPopActions()
+		{
+			string result = "Liste des actions les plus populaires :\n";
+			var sortedActionsUsed = from entry in Program.actions_used orderby entry.Value descending select entry;
+
+			foreach (KeyValuePair<string, int> kvp in sortedActionsUsed) {
+				result += "- `" + kvp.Key + "` : " + kvp.Value.ToString() + "\n";
+			}
+			return result;
+		}
+
 
 
 		//Privates
@@ -973,6 +1006,15 @@ namespace DiscordBot
 				if (Actions.getActionType(action.Item1) == "Autres") {
 					Program.autres.Add(action.Item1);
 				}
+			}
+		}
+
+		public static void setupPopActions()
+		{
+			string[] lines = System.IO.File.ReadAllLines(POP_ACTIONS_FILE);
+			foreach (string line in lines) {
+				var values = line.Split(splitChar);
+				Program.actions_used.Add(values[0], Int32.Parse(values[1]));
 			}
 		}
 

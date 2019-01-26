@@ -48,6 +48,7 @@ namespace DiscordBot
 		public static List<string> pp_songs;
 		public static List<ulong> baned_people;
 		public static Dictionary<ulong, int> people_spam;
+		public static Dictionary<string, int> actions_used;
 		public static SortedDictionary<string, string> mangasData;
 
 		public static void Main(string[] args)
@@ -114,12 +115,14 @@ namespace DiscordBot
 			pp_songs = new List<string>();
 			baned_people = new List<ulong>();
 			people_spam = new Dictionary<ulong, int>();
+			actions_used = new Dictionary<string, int>();
 			mangasData = new SortedDictionary<string, string>();
 
 			//mes setups
 			Utils.init();
 			Utils.setupPpSong();
 			Utils.setupMangasData();
+			Utils.setupPopActions();
 			Utils.setupOtherActionsList();
 			guild = _client.GetGuild(309407896070782976);
 
@@ -251,6 +254,7 @@ namespace DiscordBot
 				foreach (var action in actions.getActions) {
 					if (message_lower.StartsWith(action.Item1)) {
 						string msg = action.Item3.Invoke(message);
+						Utils.actionUsed(action.Item1);
 
 						if (message_lower.StartsWith("$")) { Utils.DeleteMessage(message); }
 
@@ -265,6 +269,8 @@ namespace DiscordBot
 					}
 					else if (autres.Contains(action.Item1) && message_lower.Contains(action.Item1)) {
 						string msg = action.Item3.Invoke(message);
+						Utils.actionUsed(action.Item1);
+
 						if (msg.Contains(Utils.splitChar.ToString())) {
 							foreach (string ms in msg.Split(Utils.splitChar)) {
 								await message.Channel.SendMessageAsync(ms);
