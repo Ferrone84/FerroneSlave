@@ -17,14 +17,14 @@ using System.Net;
 using Newtonsoft.Json.Linq;
 using System.Diagnostics;
 
-
 namespace DiscordBot
 {
 	public class Utils
 	{
 		public static int timeout = 15000;
-		public static char splitChar = '|';
-		public static string flip = "(╯°□°）╯︵ ┻━┻";
+        public static char splitChar = '|';
+        public static char otherSplitChar = '/';
+        public static string flip = "(╯°□°）╯︵ ┻━┻";
 		public static string unflip = "┬─┬﻿ ノ( ゜-゜ノ)";
 
 		public static string DB_FILE_SAVE = @"bdd_save.db";
@@ -256,7 +256,7 @@ namespace DiscordBot
 		{
 			Regex regex = new Regex(word);
 			var matches = regex.Matches(sentence);
-			return matches.Count();
+			return matches.Count;
 		}
 
 		public static bool SentenceContainsWord(string sentence, string word)
@@ -339,7 +339,7 @@ namespace DiscordBot
 			var version = "(VF)";
 			try {
 				if (manga == "my-hero-academia") { //TODO mettre un meilleur scotch que ça
-					var words = firstChapterName.Split(" ");
+					var words = firstChapterName.Split(' ');
 					var chapterNumber = Int32.Parse(words[4]);
 					if (chapterNumber > 200) {
 						goto Skip;
@@ -385,7 +385,7 @@ namespace DiscordBot
 			var version = "(VF)";
 			try {
 				if (manga == "my-hero-academia") { //TODO mettre un meilleur scotch que ça
-					var words = firstChapterName.Split(" ");
+					var words = firstChapterName.Split(' ');
 					var chapterNumber = Int32.Parse(words[4]);
 					if (chapterNumber > 200) {
 						goto Skip;
@@ -493,7 +493,7 @@ namespace DiscordBot
 					if (mangaExists && !processedMangas.Contains(mangaName)) {
 						bool alreadyInDataList = false;
 						int tmp_counter = 0, data_counter = 2000;
-						foreach (string dataLine in text_data.Split("\n")) {
+						foreach (string dataLine in text_data.Split('\n')) {
 							//string dataLine = data_.Replace(tmp_counter.ToString()+splitChar, "");
 							if (chapter.Equals(dataLine)) {
 								data_counter = tmp_counter;
@@ -566,7 +566,7 @@ namespace DiscordBot
 			//one-piece
 			//One Piece
 			string result = String.Empty;
-			var tokens = mangaName.Split("-");
+			var tokens = mangaName.Split('-');
 			foreach (var token in tokens) {
 				var new_token = char.ToUpper(token[0]) + token.Substring(1);
 				result += new_token + " ";
@@ -621,8 +621,8 @@ namespace DiscordBot
 					typeSave = type;
 					result += "\n[" + type + "]\n";
 				}
-
-				result += "\t - " + action.Item1 + " : " + action.Item2 + "\n";
+                
+				result += "\t - " + action.Item1.Split(otherSplitChar)[0] + " : " + action.Item2 + "\n";
 			}
 
 			return splitBodies(result);
@@ -899,7 +899,7 @@ namespace DiscordBot
 
 		public static string banUser(string userId)
 		{
-			ulong userId_ = Convert.ToUInt64(userId);
+			ulong userId_ = Convert.ToUInt64(onlyKeepDigits(userId));
 			string msg = "Cet utilisateur était déjà banni.";
 
 			if (userId_ == Program.master_id) {
@@ -916,7 +916,7 @@ namespace DiscordBot
 
 		public static string unbanUser(string userId)
 		{
-			ulong userId_ = Convert.ToUInt64(userId);
+			ulong userId_ = Convert.ToUInt64(onlyKeepDigits(userId));
 			string msg = "Cet utilisateur n'était pas banni.";
 
 			if (Program.baned_people.Contains(userId_)) {
@@ -1004,7 +1004,7 @@ namespace DiscordBot
 		{
 			foreach (var action in Program.actions.getActions) {
 				if (Actions.getActionType(action.Item1) == "Autres") {
-					Program.autres.Add(action.Item1);
+					Program.autres.Add(action.Item1.Split(otherSplitChar)[0]);
 				}
 			}
 		}

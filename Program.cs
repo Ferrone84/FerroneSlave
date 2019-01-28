@@ -9,6 +9,7 @@ using Discord;
 using Discord.WebSocket;
 using System.Threading;
 using System.Collections.ObjectModel;
+using System.Text.RegularExpressions;
 
 namespace DiscordBot
 {
@@ -267,18 +268,46 @@ namespace DiscordBot
 
 						break;
 					}
-					else if (autres.Contains(action.Item1) && message_lower.Contains(action.Item1)) {
-						string msg = action.Item3.Invoke(message);
-						Utils.actionUsed(action.Item1);
+                    else if (autres.Contains(action.Item1.Split(Utils.otherSplitChar)[0]))
+                    {
+                        if (message_lower.Contains(action.Item1.Split(Utils.otherSplitChar)[0]))
+                        {
+                            string msg = action.Item3.Invoke(message);
+                            Utils.actionUsed(action.Item1.Split(Utils.otherSplitChar)[0]);
 
-						if (msg.Contains(Utils.splitChar.ToString())) {
-							foreach (string ms in msg.Split(Utils.splitChar)) {
-								await message.Channel.SendMessageAsync(ms);
-							}
-						}
-						else if (msg != String.Empty) { await message.Channel.SendMessageAsync(msg); }
-					}
-				}
+                            if (msg.Contains(Utils.splitChar.ToString()))
+                            {
+                                foreach (string ms in msg.Split(Utils.splitChar))
+                                {
+                                    await message.Channel.SendMessageAsync(ms);
+                                }
+                            }
+                            else if (msg != String.Empty) {
+                                await message.Channel.SendMessageAsync(msg);
+                            }
+                        }
+                        else if (action.Item1.Split(Utils.otherSplitChar).Length != 1)
+                        {
+                            Regex regex = new Regex(action.Item1.Split(Utils.otherSplitChar)[1]);
+                            if (regex.Match(message_lower).Success)
+                            {
+                                string msg = action.Item3.Invoke(message);
+                                Utils.actionUsed(action.Item1.Split(Utils.otherSplitChar)[0]);
+
+                                if (msg.Contains(Utils.splitChar.ToString()))
+                                {
+                                    foreach (string ms in msg.Split(Utils.splitChar))
+                                    {
+                                        await message.Channel.SendMessageAsync(ms);
+                                    }
+                                }
+                                else if (msg != String.Empty) {
+                                    await message.Channel.SendMessageAsync(msg);
+                                }
+                            }
+                        }
+                    }
+                }
 			}
 			catch (Exception e) {
 				Utils.displayException(e, "Main foreach actions");
@@ -290,7 +319,7 @@ namespace DiscordBot
 			///////////////////////////////////////////////////////////////////
 			try {
 				if (message_lower.StartsWith("!pokemon")) {
-					var words = message_lower.Split(" ");
+					var words = message_lower.Split(' ');
 					int words_length = words.Length;
 
 					if (words_length == 2) {

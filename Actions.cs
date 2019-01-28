@@ -57,15 +57,14 @@ namespace DiscordBot
 			add("$fap", "Si t'aime te fap ;)", fap);
 
 			add("bite", "Si ta phrase contient une bite ou plusieurs alors PEPE*biteNumber.", bite);
-			add("musique de génie", "Le jour où tu veux écouter de la vrai musique.", musiqueGenie);
-			add("gamabunta", "Meme naruto du BOSS.", gamabunta);
+			add("musique de génie" + Utils.otherSplitChar + @"musique de g[ée]nie", "Le jour où tu veux écouter de la vrai musique.", musiqueGenie);
+			add("gamabunta" + Utils.otherSplitChar + @"gamabunta|boss", "Meme naruto du BOSS.", gamabunta);
 			add("invocation", "Meme naruto.", invocation);
 			add("welcome", "Meme Resident Evil 4.", welcome);
-			add("évidemment", "Meme Antoine Daniel.", evidemment);
-			add("evidemment", "Meme Antoine Daniel.", evidemment);
-			add("omae", "NANI !?", omae);
-			add("sancho", "Le génie de Brook.", sancho);
-			add("smash", "Cqfd.", detroitSmash);
+			add("évidemment"+Utils.otherSplitChar+ @"[ée]videmment", "Meme Antoine Daniel.", evidemment);
+			add("omae wa mou shindeiru" + Utils.otherSplitChar + @"omae|(wa mou shindeiru)|shindeiru", "NANI !?", omae);
+			add("hanauta sancho" + Utils.otherSplitChar + @"hanauta|sancho|yahazu\s*giri", "Le génie de Brook.", sancho);
+			add("detroit smash" + Utils.otherSplitChar + @"d+e+t+r+o+i+t+|s+m+a+s+h+", "Cqfd.", detroitSmash);
 			add("repent", "YOU WILL HAVE TO REPENT TO THIS MAN.", repent);
 			add("latata", "Do I really need to say something?", latata);
 		}
@@ -225,7 +224,7 @@ namespace DiscordBot
 			string msg = String.Empty;
 			string message_lower = message.Content.ToLower();
 
-			var words = message_lower.Split(" ");
+			var words = message_lower.Split(' ');
 			int words_length = words.Length;
 
 			if (words_length == 2) {
@@ -243,7 +242,7 @@ namespace DiscordBot
 			string msg = "This command can be used by two diffents ways: \n1 - Just the pokemon name after the command, will send you his catch rate.\n2 - The second way will sent you his % chance of being catch : `!command life_percent catch_rate bonus_ball bonus_statut` => `!command 100 45 2 2`."; ;
 			string message_lower = message.Content.ToLower();
 
-			var words = message_lower.Split(" ");
+			var words = message_lower.Split(' ');
 			int words_length = words.Length;
 
 			try {
@@ -271,7 +270,7 @@ namespace DiscordBot
 			string msg = String.Empty;
 			string message_lower = message.Content.ToLower();
 
-			var words = message_lower.Split(" ");
+			var words = message_lower.Split(' ');
 			int words_length = words.Length;
 
 			if (words_length != 2) {
