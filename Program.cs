@@ -24,8 +24,9 @@ namespace DiscordBot
 			{ "debug",          353262627880697868 },
 			{ "debugs",         456443420378923010 },
 			{ "zone51",         346760327540506643 },
-			{ "warframe",       483426339009986560 },
-			{ "peguts",         392118626561294346 }
+            { "warframe",       483426339009986560 },
+            { "nsfw",       389537278671978497 },
+            { "peguts",         392118626561294346 }
 		};
 
 		public enum PokemonInfo
@@ -143,17 +144,49 @@ namespace DiscordBot
 		private async Task ReactionAdded(Cacheable<IUserMessage, ulong> cachedMessage, ISocketMessageChannel channel, SocketReaction reaction)
 		{
 			try {
-				//if (reaction.Channel.Id == channels["musique"]) {
-				if (reaction.UserId == master_id && reaction.Emote.ToString() == "❎") {
-					IUserMessage message = channel.GetMessageAsync(cachedMessage.Id).Result as IUserMessage;
-					string result = database.removeMusic(Utils.getYtLink(message.Content));
-					if (result == String.Empty) {
-						await message.RemoveAllReactionsAsync();
-						await message.AddReactionAsync(new Emoji("💀"));
-						await Utils.sendMessageTo(channels["debugs"], "Message n°" + reaction.MessageId + " deleted from musique database. (" + message.Content + ")");
-					}
-				}
-				//}
+                if (Utils.isAdmin(reaction.UserId)) {
+
+                    if (reaction.Emote.ToString() == "❎") {
+                        IUserMessage message = channel.GetMessageAsync(cachedMessage.Id).Result as IUserMessage;
+                        string result = database.removeMusic(Utils.getYtLink(message.Content));
+
+                        if (result == String.Empty) {
+                            await message.RemoveAllReactionsAsync();
+                            await message.AddReactionAsync(new Emoji("💀"));
+                            await Utils.sendMessageTo(channels["debugs"], "Message n°" + reaction.MessageId + " deleted from musique database. (" + message.Content + ")");
+                        }
+                    }
+                    else if (reaction.Emote.ToString() == "<:nsfw:539906959617425418>") {
+                        IUserMessage message = channel.GetMessageAsync(cachedMessage.Id).Result as IUserMessage;
+
+                        //renvoyer dans le meme channel un embed qui met l'icone NSFW + qui dit qui a commit la faute
+                        var embed = Utils.getNsfwEmbed(message.Author);
+
+                        if (embed != null) {
+                            await message.Channel.SendMessageAsync("", false, embed);
+                        }
+                        else {
+                            await message.Channel.SendMessageAsync("What do fock.");
+                        }
+
+                        //renvoyer le message dans le channel nsfw
+                        ulong channelTo = channels["nsfw"];
+
+                        if (message.Attachments.Count == 0) {
+                            await Utils.sendMessageTo(channelTo, message.Content);
+                        }
+                        else {
+                            foreach (IAttachment attachment in message.Attachments) {
+                                await Utils.sendMessageTo(channelTo, "*--Content proposed by "+message.Author.Mention+"--*\n"+message.Content+"\n"+ attachment.Url);
+                            }
+                        }
+                        //supprimer le message originel
+                        await message.DeleteAsync();
+                    }
+                }
+                else {
+
+                }
 			}
 			catch (Exception e) {
 				Utils.displayException(e, "ReactionAdded");
@@ -244,7 +277,7 @@ namespace DiscordBot
 			///////////////////////////////////////////////////////////////////
 
 			try {
-				if (message_lower.StartsWith("!!") && !Utils.verifyAdmin(message)) {
+				if (message_lower.StartsWith("!!") && !Utils.isAdmin(message.Author.Id)) {
 					if (actions.actionExist(message_lower))
 						await message.Channel.SendMessageAsync("Wesh t'es pas admin kestu fais le fou avec moi ?");
 					else
@@ -322,10 +355,10 @@ namespace DiscordBot
 			try {
 				if (message_lower.StartsWith("!pokemon")) {
 					var words = message_lower.Split(' ');
-					int words_length = words.Length;
 
-					if (words_length == 2) {
+					if (words.Length == 2) {
 						var embed = Utils.getAllPokemonInfo(words[1]);
+
 						if (embed != null) {
 							await message.Channel.SendMessageAsync("", false, embed);
 						}

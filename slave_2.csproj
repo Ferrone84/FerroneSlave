@@ -6,9 +6,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="AngleSharp" Version="0.9.11" />
     <PackageReference Include="dcsoup" Version="1.0.0" />
-    <PackageReference Include="Discord.Net" Version="2.0.0-beta" />
+    <PackageReference Include="Discord.Net" Version="2.0.1" />
+    <PackageReference Include="Fizzler" Version="1.2.0" />
     <PackageReference Include="HtmlAgilityPack" Version="1.8.4" />
+    <PackageReference Include="System.ServiceModel.Syndication" Version="4.6.0-preview.18571.3" />
   </ItemGroup>
 
 </Project>

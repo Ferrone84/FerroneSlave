@@ -687,21 +687,31 @@ namespace DiscordBot
 			//Thread.Sleep(10800000);     //3h
 			Thread.Sleep(1800000);  //30min
 			getAllNewChapters();
-		}
+        }
 
-		public static async Task sendMessageTo(ulong channel, string message)
-		{
-			try {
-				foreach (var msg in splitBodies(message).Split(splitChar)) {
-					await ((SocketTextChannel) Program._client.GetChannel(channel)).SendMessageAsync(msg);
-				}
-			}
-			catch (Exception e) {
-				displayException(e, "Impossible to send message, sendMessageTo(ulong channel, string message)");
-			}
-		}
+        public static async Task sendMessageTo(ulong channel, string message)
+        {
+            try {
+                foreach (var msg in splitBodies(message).Split(splitChar)) {
+                    await ((SocketTextChannel)Program._client.GetChannel(channel)).SendMessageAsync(msg);
+                }
+            }
+            catch (Exception e) {
+                displayException(e, "Impossible to send message, sendMessageTo(ulong channel, string message)");
+            }
+        }
 
-		public static async Task reply(SocketMessage message, string response)
+        public static async Task sendFileTo(ulong channel, string filePath, string message)
+        {
+            try {
+                await ((SocketTextChannel)Program._client.GetChannel(channel)).SendFileAsync(filePath, message);
+            }
+            catch (Exception e) {
+                displayException(e, "Impossible to send message, sendFileTo(ulong channel, string filePath, string message)");
+            }
+        }
+
+        public static async Task reply(SocketMessage message, string response)
 		{
 			try {
 				foreach (var msg in splitBodies(response).Split(splitChar)) {
@@ -814,9 +824,9 @@ namespace DiscordBot
 			}
 		}
 
-		public static bool verifyAdmin(SocketMessage message)
+		public static bool isAdmin(ulong id)
 		{
-			return Program.database.idAdmin(message.Author.Id.ToString());
+			return Program.database.idAdmin(id.ToString());
 		}
 
 		public static void alert(ulong channel, string message = "")
@@ -872,10 +882,10 @@ namespace DiscordBot
 				return null;
 			}
 
-			pokemonInfos = pokemonInfos.Replace("(", "");
-			pokemonInfos = pokemonInfos.Replace(")", "");
-			pokemonInfos = pokemonInfos.Replace("'", "");
-			pokemonInfos = pokemonInfos.Replace("///", "://");
+			pokemonInfos = pokemonInfos.Replace("(", "")
+			    .Replace(")", "")
+			    .Replace("'", "")
+			    .Replace("///", "://");
 			string[] infos = pokemonInfos.Split(", ");
 
 			int id = Int32.Parse(infos[1]);
@@ -971,6 +981,16 @@ namespace DiscordBot
 			return result;
 		}
 
+        public static Embed getNsfwEmbed(IUser author)
+        {
+            return new EmbedBuilder()
+                .WithTitle("NSFW POLICE FORCE")
+                .WithDescription("Report to this field : <#389537278671978497>")
+                .WithColor(new Color(200, 25, 25))
+                .WithThumbnailUrl("https://cdn.discordapp.com/emojis/539905759580782602.png?v=1")
+                .AddField("\u200B", "You "+author.Mention+" sir, are DISCUSTING !", false)
+                .Build();
+        }
 
 
 		//Privates
