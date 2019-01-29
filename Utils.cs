@@ -489,7 +489,7 @@ namespace DiscordBot
 
 					string chapter = title + splitChar + link + splitChar + description;
 					string full_d = mangaName + "/" + mangaExists + "/" + !text_data.Contains(chapter) + "/" + !processedMangas.Contains(mangaName);
-					//full_d.debug();
+
 					if (mangaExists && !processedMangas.Contains(mangaName)) {
                         Supremes.Nodes.Document document = null;
                         try {
@@ -499,24 +499,16 @@ namespace DiscordBot
                             ("Timeout on : <" + link + ">").debug();
                             throw new TimeoutException("Timeout on : <" + link + ">");
                         }
-                        //("document: " + document).debug();
-                        //title.debug();
 
                         var pNotif = document.Select("p[id=notif]");
-                        //("pNotif:" + pNotif).debug();
-                        //(pNotif.Text == String.Empty).debug();
-
                         bool isVF = true;
                         if (pNotif.Text != String.Empty) {
                             isVF = false;
                         }
 
-                        //Console.Read();
-
                         bool alreadyInDataList = false;
 						int tmp_counter = 0, data_counter = 2000;
 						foreach (string dataLine in text_data.Split('\n')) {
-							//string dataLine = data_.Replace(tmp_counter.ToString()+splitChar, "");
 							if (chapter.Equals(dataLine)) {
 								data_counter = tmp_counter;
 								alreadyInDataList = true;
@@ -553,14 +545,10 @@ namespace DiscordBot
                             processedMangas.Add(mangaName);
 						}
 					}
-					else if (mangaExists) {
-						//await sendMessageTo(Program.channels["debugs"], "Rentre pas : " + full_d);
-					}
 
-					data += /*crawler_counter.ToString() + splitChar +*/ chapter + "\n";
+					data += chapter + "\n";
 					crawler_counter++;
 				}
-				//await sendMessageTo(Program.channels["debugs"], "\nFIN\n");
 
 				System.IO.File.WriteAllText(MANGASDATA_FILE_NAME3, data);
 			}
@@ -892,7 +880,7 @@ namespace DiscordBot
 
 			int id = Int32.Parse(infos[1]);
 			string urlIcon = infos[2];
-            //"https://img.pokemondb.net/sprites/black-white/anim/normal/unown-a.gif"; 
+            //https://img.pokemondb.net/sprites/black-white/anim/normal/unown-a.gif
             //http://www.pokestadium.com/sprites/xy/unown.gif
             //http://www.pokestadium.com/assets/img/sprites/official-art/unown.png
             urlIcon = "http://www.pokestadium.com/sprites/xy/" + infos[3] + ".gif";

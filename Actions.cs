@@ -512,7 +512,7 @@ namespace DiscordBot
 
 		private string evidemment(SocketMessage message)
 		{
-			return "https://www.youtube.com/watch?v=A4-MlnvXo2I&ab_channel=FansDesRoisD%27Internet";
+			return "https://media.tenor.com/images/7f54355b70208666f7e9ed5f657b4471/tenor.gif";
 		}
 
 		private string omae(SocketMessage message)
