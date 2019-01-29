@@ -264,7 +264,9 @@ namespace DiscordBot
 								await message.Channel.SendMessageAsync(ms);
 							}
 						}
-						else if (msg != String.Empty) { await message.Channel.SendMessageAsync(msg); }
+						else if (msg != String.Empty) {
+                            var messageSent = await message.Channel.SendMessageAsync(msg);
+                        }
 
 						break;
 					}

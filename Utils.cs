@@ -491,7 +491,29 @@ namespace DiscordBot
 					string full_d = mangaName + "/" + mangaExists + "/" + !text_data.Contains(chapter) + "/" + !processedMangas.Contains(mangaName);
 					//full_d.debug();
 					if (mangaExists && !processedMangas.Contains(mangaName)) {
-						bool alreadyInDataList = false;
+                        Supremes.Nodes.Document document = null;
+                        try {
+                            document = Dcsoup.Parse(new Uri(link), timeout);
+                        }
+                        catch (Exception) {
+                            ("Timeout on : <" + link + ">").debug();
+                            throw new TimeoutException("Timeout on : <" + link + ">");
+                        }
+                        //("document: " + document).debug();
+                        //title.debug();
+
+                        var pNotif = document.Select("p[id=notif]");
+                        //("pNotif:" + pNotif).debug();
+                        //(pNotif.Text == String.Empty).debug();
+
+                        bool isVF = true;
+                        if (pNotif.Text != String.Empty) {
+                            isVF = false;
+                        }
+
+                        //Console.Read();
+
+                        bool alreadyInDataList = false;
 						int tmp_counter = 0, data_counter = 2000;
 						foreach (string dataLine in text_data.Split('\n')) {
 							//string dataLine = data_.Replace(tmp_counter.ToString()+splitChar, "");
@@ -513,7 +535,7 @@ namespace DiscordBot
 								foreach (var user in users) {
 									subs += "<@" + user + "> ";
 								}
-								await sendMessageTo(Program.channels["mangas"], msg + " " + subs);
+								await sendMessageTo(Program.channels["mangas"], msg + " " + subs + " // *(" + pNotif.Text+")*");
 								processedMangas.Add(mangaName);
 							}
 						}
@@ -527,8 +549,8 @@ namespace DiscordBot
 							foreach (var user in users) {
 								subs += "<@" + user + "> ";
 							}
-							await sendMessageTo(Program.channels["mangas"], msg + " " + subs);
-							processedMangas.Add(mangaName);
+							await sendMessageTo(Program.channels["mangas"], msg + " " + subs + " // *(" + pNotif.Text + ")*");
+                            processedMangas.Add(mangaName);
 						}
 					}
 					else if (mangaExists) {
@@ -869,25 +891,28 @@ namespace DiscordBot
 			string[] infos = pokemonInfos.Split(", ");
 
 			int id = Int32.Parse(infos[1]);
-			string urlIcon = infos[2]; //"https://img.pokemondb.net/sprites/black-white/anim/normal/unown-a.gif";
-			string nameEn = infos[3]; nameEn = char.ToUpper(nameEn[0]) + nameEn.Substring(1);
+			string urlIcon = infos[2];
+            //"https://img.pokemondb.net/sprites/black-white/anim/normal/unown-a.gif"; 
+            //http://www.pokestadium.com/sprites/xy/unown.gif
+            //http://www.pokestadium.com/assets/img/sprites/official-art/unown.png
+            urlIcon = "http://www.pokestadium.com/sprites/xy/" + infos[3] + ".gif";
+            string nameEn = infos[3]; nameEn = char.ToUpper(nameEn[0]) + nameEn.Substring(1);
 			string nameFr = infos[4]; nameFr = char.ToUpper(nameFr[0]) + nameFr.Substring(1);
 			int catchRate = Int32.Parse(infos[5]);
 			int rarityTier = Int32.Parse(infos[6]);
 
-			EmbedBuilder builder = new EmbedBuilder() {
-				Title = "-- " + nameEn + " / " + nameFr + " --",
-				Description = "Pokemon info:",
-				Color = new Color(89, 181, 255)
-			};
+            string pokepediaUrl = "https://www.pokepedia.fr/" + nameFr;
+            string prowikiUrl = "https://prowiki.info/index.php?title=" + nameEn;
 
-			builder.ThumbnailUrl = urlIcon;
-
-			builder.AddField("ID", id, true);
-			builder.AddField("Catch rate", catchRate, true);
-			builder.AddField("Rarity tier", rarityTier, true);
-
-			return builder.Build();
+            return new EmbedBuilder()
+                .WithTitle("-- " + nameEn + " / " + nameFr + " --")
+                .WithDescription("[Pokepedia](" + pokepediaUrl + ") - [ProWiki](" + prowikiUrl + ")")
+                .WithColor(new Color(89, 181, 255))
+                .WithThumbnailUrl(urlIcon)
+                .AddField("ID", id, true)
+                .AddField("Catch rate", catchRate, true)
+                .AddField("Rarity tier", rarityTier, true)
+                .Build();
 		}
 
 		public static void emptyBannedPeopleStack()
