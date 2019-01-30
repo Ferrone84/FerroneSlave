@@ -34,9 +34,10 @@ namespace DiscordBot
 			add("!catch", "Permet de savoir le % de chance de capture du pokemon ou d'obtenir son catchRate.", pokemonCatch);
 			add("!rtier", "Permet de savoir la rareté d'un pokemon (rarityTier).", pokemonRarityTier);
 			add("!pokemon", "Permet d'afficher les infos d'un pokemon.", allPokemonInfo);
-			add("!popactions", "Permet d'afficher les actions les plus populaires.", popActions);
+            add("!popactions", "Permet d'afficher les actions les plus populaires.", popActions);
+            add("!quote", "Permet de citer le message de quelqu'un.", quote);
 
-			add("!!display", "Affiche la bdd.", displayBdd);
+            add("!!display", "Affiche la bdd.", displayBdd);
 			add("!!ban", "Ajoute un utilisateur à la liste des utilisateurs bannis.", banUser);
 			add("!!unban", "Retire un utilisateur de la liste des utilisateurs bannis.", unbanUser);
 			add("!!adduser", "Ajoute un utilisateur à la bdd.", addUser);
@@ -278,19 +279,36 @@ namespace DiscordBot
 			}
 
 			return msg;
-		}
+        }
 
-		private string popActions(SocketMessage message)
-		{
-			return Utils.getPopActions();
-		}
+        private string popActions(SocketMessage message)
+        {
+            return Utils.getPopActions();
+        }
+
+        private string quote(SocketMessage message)
+        {
+            string msg = String.Empty;
+            string message_lower = message.Content.ToLower();
+
+            var args = message_lower.Split(' ');
+            if (args.Length != 2) {
+                return "This command can be use like this : !quote message_id (je parle du vrai ID, écrivez pas message_id bande de fdp).";
+            }
+            
+            if (!(message.Channel is SocketGuildChannel)) {
+                msg = "Channel MUST be from a guild.";
+            }
+
+            return msg;
+        }
 
 
-		///////////////////////////////////////////////////////////////////
-		//							  Partie Admin
-		///////////////////////////////////////////////////////////////////
+        ///////////////////////////////////////////////////////////////////
+        //							  Partie Admin
+        ///////////////////////////////////////////////////////////////////
 
-		private string displayBdd(SocketMessage message)
+        private string displayBdd(SocketMessage message)
 		{
 			return Program.database.display();
 		}

@@ -25,9 +25,11 @@ namespace DiscordBot
         public static char splitChar = '|';
         public static char otherSplitChar = '/';
         public static string flip = "(╯°□°）╯︵ ┻━┻";
-		public static string unflip = "┬─┬﻿ ノ( ゜-゜ノ)";
+        public static string unflip = "┬─┬﻿ ノ( ゜-゜ノ)";
 
-		public static string DB_FILE_SAVE = @"bdd_save.db";
+        public static string NSFW_EMOJI = "<:nsfw:539906959617425418>";
+
+        public static string DB_FILE_SAVE = @"bdd_save.db";
 		public static string DB_FILE_NAME = @"resources/bdd.db";
 		public static string PP_FILE_NAME = @"resources/pp.txt";
 		public static string LOGS_FILE_NAME = @"resources/logs.txt";
@@ -988,8 +990,78 @@ namespace DiscordBot
                 .WithDescription("Report to this field : <#389537278671978497>")
                 .WithColor(new Color(200, 25, 25))
                 .WithThumbnailUrl("https://cdn.discordapp.com/emojis/539905759580782602.png?v=1")
-                .AddField("\u200B", "You "+author.Mention+" sir, are DISCUSTING !", false)
+                .AddField("\u200B", "You "+author.Mention+" sir, are DISGUSTING !", false)
                 .Build();
+        }
+
+        public static IEmote getEmoteFromGuild(SocketGuild guild, string emoteName)
+        {
+            IEmote result = null;
+
+            foreach (var emote in guild.Emotes) {
+                if (emote.ToString() == emoteName) {
+                    result = emote;
+                }
+            }
+
+            return result;
+        }
+
+        public static async Task<IMessage> getMessageFromId(ulong messageId, SocketGuild guild)
+        {
+            IMessage resultMessage = null;
+
+            foreach (var channel in guild.Channels) {
+                if (!(channel is SocketTextChannel)) {
+                    continue;
+                }
+                
+                var messages = await ((SocketTextChannel)channel).GetMessagesAsync().FlattenAsync();
+
+                foreach (var message in messages) {
+                    if (message.Id == messageId) {
+                        resultMessage = message;
+                    }
+                }
+            }
+
+            return resultMessage;
+        }
+
+        public static Embed quote(IMessage message, IUser user = null)
+        {
+            var channel = message.Channel;
+            if (!(channel is SocketGuildChannel)) {
+                return null;
+            }
+
+            int counter = 0;
+            Color color = new Color(75, 75, 75);
+            var guild = ((SocketGuildChannel)channel).Guild;
+
+            foreach (var role in ((SocketGuildUser)message.Author).Roles) {
+                if (counter++ == 1) {
+                    color = role.Color;
+                }
+            }
+
+            EmbedBuilder embedBuilder = new EmbedBuilder()
+                .WithDescription(message.Content)
+                .WithColor(color)
+                .WithAuthor(message.Author.ToString(), message.Author.GetAvatarUrl(), "https://discordapp.com/channels/" + guild.Id + '/' + channel.Id + '/' + message.Id)
+                .WithTimestamp(message.CreatedAt);
+
+            if (user != null) {
+                embedBuilder.WithFooter("Quoted by: " + user.Username);
+            }
+
+            if (message.Attachments.Count != 0) {
+                foreach (IAttachment attachment in message.Attachments) {
+                    embedBuilder.WithImageUrl(attachment.Url);
+                }
+            }
+
+            return embedBuilder.Build();
         }
 
 

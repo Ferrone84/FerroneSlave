@@ -144,10 +144,15 @@ namespace DiscordBot
 		private async Task ReactionAdded(Cacheable<IUserMessage, ulong> cachedMessage, ISocketMessageChannel channel, SocketReaction reaction)
 		{
 			try {
+                IUserMessage message = channel.GetMessageAsync(cachedMessage.Id).Result as IUserMessage;
+
+                if (baned_people.Contains(message.Author.Id) || reaction.User.Value.IsBot) {
+                    return;
+                }
+
                 if (Utils.isAdmin(reaction.UserId)) {
 
                     if (reaction.Emote.ToString() == "❎") {
-                        IUserMessage message = channel.GetMessageAsync(cachedMessage.Id).Result as IUserMessage;
                         string result = database.removeMusic(Utils.getYtLink(message.Content));
 
                         if (result == String.Empty) {
@@ -156,9 +161,7 @@ namespace DiscordBot
                             await Utils.sendMessageTo(channels["debugs"], "Message n°" + reaction.MessageId + " deleted from musique database. (" + message.Content + ")");
                         }
                     }
-                    else if (reaction.Emote.ToString() == "<:nsfw:539906959617425418>") {
-                        IUserMessage message = channel.GetMessageAsync(cachedMessage.Id).Result as IUserMessage;
-
+                    else if (reaction.Emote.ToString() == Utils.NSFW_EMOJI) {
                         //renvoyer dans le meme channel un embed qui met l'icone NSFW + qui dit qui a commit la faute
                         var embed = Utils.getNsfwEmbed(message.Author);
 
@@ -170,22 +173,49 @@ namespace DiscordBot
                         }
 
                         //renvoyer le message dans le channel nsfw
-                        ulong channelTo = channels["nsfw"];
+                        ulong channelTo = channels["debugs"];
 
                         if (message.Attachments.Count == 0) {
-                            await Utils.sendMessageTo(channelTo, message.Content);
+                            await Utils.sendMessageTo(channelTo, "*--Content proposed by " + message.Author.Mention + "--*\n" + message.Content);
                         }
                         else {
                             foreach (IAttachment attachment in message.Attachments) {
                                 await Utils.sendMessageTo(channelTo, "*--Content proposed by "+message.Author.Mention+"--*\n"+message.Content+"\n"+ attachment.Url);
                             }
                         }
+                        
                         //supprimer le message originel
                         await message.DeleteAsync();
                     }
                 }
                 else {
+                    if (reaction.Emote.ToString() == Utils.NSFW_EMOJI) {
+                        int result = 0;
+                        IEmote nsfw = Utils.getEmoteFromGuild(guild, Utils.NSFW_EMOJI);
+                        var reactedUsers = await message.GetReactionUsersAsync(nsfw, 100).FlattenAsync();
 
+                        IUser user = null;
+                        using (IEnumerator<IUser> enumerator = reactedUsers.GetEnumerator()) {
+                            while (enumerator.MoveNext()) {
+                                if (result == 0) {
+                                    user = enumerator.Current;
+                                }
+                                result++;
+                            }
+                        }
+
+                        if (result == 1) {
+                            await message.AddReactionAsync(nsfw);
+                            Embed embed = Utils.quote(message, reaction.User.Value);
+
+                            if (embed != null) {
+                                await message.Channel.SendMessageAsync("<@&328899154887835678> Is this NSFW ? *reported by " + user.Mention + "*", false, embed);
+                            }
+                            else {
+                                await message.Channel.SendMessageAsync("<@&328899154887835678> Is this NSFW ? *reported by " + user.Mention + "*");
+                            }
+                        }
+                    }
                 }
 			}
 			catch (Exception e) {
@@ -367,7 +397,24 @@ namespace DiscordBot
 						}
 					}
 				}
-			}
+                else if (message_lower.StartsWith("!quote")) {
+                    var args = message_lower.Split(' ');
+
+                    if (args.Length == 2) {
+                        try {
+                            ulong messageId = UInt64.Parse(args[1]);
+
+                            if (message.Channel is SocketGuildChannel) {
+                                IMessage msg = await Utils.getMessageFromId(messageId, ((SocketGuildChannel)message.Channel).Guild);
+                                await message.Channel.SendMessageAsync("", false, Utils.quote(msg, message.Author));
+                            }
+                        }
+                        catch (Exception e) {
+                            await message.Channel.SendMessageAsync("This command can be use like this : !quote message_id (je parle du vrai ID, écrivez pas message_id bande de fdp).");
+                        }
+                    }
+                }
+            }
 			catch (Exception e) {
 				Utils.displayException(e, "Main embed actions");
 				await message.Channel.SendMessageAsync("La commande n'as pas fonctionnée comme prévu.");
@@ -388,8 +435,16 @@ namespace DiscordBot
 
 			if (message_lower.StartsWith("!d")) {
 				try {
+                    var args = message_lower.Split(' ');
+                    ulong messageId = UInt64.Parse(args[1]);
 
-				}
+                    if (!(message.Channel is SocketGuildChannel)) {
+                        goto End;
+                    }
+                    IMessage msg = await Utils.getMessageFromId(messageId, ((SocketGuildChannel)message.Channel).Guild);
+
+                    await message.Channel.SendMessageAsync("", false, Utils.quote(msg));
+                }
 				catch (Exception e) {
 					Utils.displayException(e, "!d");
 					foreach (var errors in Utils.splitBodies(e.Message + "\n" + e.StackTrace).Split(Utils.splitChar)) {
