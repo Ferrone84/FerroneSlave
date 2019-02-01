@@ -1,5 +1,22 @@
-bite|3
-!help|1
-!popactions|3
-$rsong|1
+!pokemon|33
+bite|17
+!help|12
+detroit smash|10
+évidemment|9
+!popactions|8
+$rsong|7
+!!delete|4
+musique de génie|4
+!!ban|4
+hanauta sancho|3
+omae wa mou shindeiru|2
+latata|2
+!!unban|2
 $fs|1
+repent|1
+smash|1
+!flip|1
+!mangas|1
+evidemment|1
+$los|1
+!!savebdd|1
