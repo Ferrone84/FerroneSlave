@@ -13,7 +13,7 @@ using System.Text.RegularExpressions;
 
 namespace DiscordBot
 {
-	public class Program
+    public class Program
 	{
 		public static Dictionary<string, ulong> channels = new Dictionary<string, ulong>()
 		{
@@ -25,7 +25,7 @@ namespace DiscordBot
 			{ "debugs",         456443420378923010 },
 			{ "zone51",         346760327540506643 },
             { "warframe",       483426339009986560 },
-            { "nsfw",       389537278671978497 },
+            { "nsfw",           389537278671978497 },
             { "peguts",         392118626561294346 }
 		};
 
@@ -131,9 +131,6 @@ namespace DiscordBot
 			guild = _client.GetGuild(309407896070782976);
 
 			//Thread qui regarde les nouveaux scans
-			//Thread thread = new Thread(Utils.getAllNewChapters);
-			//thread.Start();
-
 			Thread mangas_thread = new Thread(Utils.mangasCrawlerOnLireScanV2);
 			mangas_thread.Start();
 

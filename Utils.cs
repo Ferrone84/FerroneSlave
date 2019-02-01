@@ -832,7 +832,7 @@ namespace DiscordBot
 
 		public static bool isAdmin(ulong id)
 		{
-			return Program.database.idAdmin(id.ToString());
+			return Program.database.isAdmin(id.ToString());
 		}
 
 		public static void alert(ulong channel, string message = "")

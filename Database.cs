@@ -211,7 +211,7 @@ namespace DiscordBot
 			}
 		}
 
-		public bool idAdmin(string uid)
+		public bool isAdmin(string uid)
 		{
 			string userId = makeQuery("SELECT id FROM users WHERE uid=?", uid);
 			if (userId.Equals(String.Empty))

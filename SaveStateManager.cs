@@ -4,7 +4,7 @@ using System.IO;
 
 namespace DiscordBot
 {
-	class BotStateManager
+	public class SaveStateManager
 	{
 		public static void Save<T>(string filename, T obj)
 		{
