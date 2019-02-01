@@ -48,12 +48,13 @@ namespace DiscordBot
 		public static SocketGuild guild;
 		public static List<string> autres;
 		public static List<string> pp_songs;
-		public static List<ulong> baned_people;
-		public static Dictionary<ulong, int> people_spam;
+        public static List<ulong> baned_people;
+        public static Dictionary<ulong, int> people_spam;
 		public static Dictionary<string, int> actions_used;
-		public static SortedDictionary<string, string> mangasData;
+        public static SortedDictionary<string, string> mangasData;
+        public static Dictionary<IUserMessage, IUserMessage> nsfw_content_inprocess;
 
-		public static void Main(string[] args)
+        public static void Main(string[] args)
 			=> new Program().MainAsync().GetAwaiter().GetResult();
 
 		public async Task MainAsync()
@@ -115,13 +116,14 @@ namespace DiscordBot
 			database = new Database();
 			autres = new List<string>();
 			pp_songs = new List<string>();
-			baned_people = new List<ulong>();
-			people_spam = new Dictionary<ulong, int>();
+            baned_people = new List<ulong>();
+            people_spam = new Dictionary<ulong, int>();
 			actions_used = new Dictionary<string, int>();
-			mangasData = new SortedDictionary<string, string>();
+            mangasData = new SortedDictionary<string, string>();
+            nsfw_content_inprocess = new Dictionary<IUserMessage, IUserMessage>();
 
-			//mes setups
-			Utils.init();
+            //mes setups
+            Utils.init();
 			Utils.setupPpSong();
 			Utils.setupMangasData();
 			Utils.setupPopActions();
@@ -146,13 +148,26 @@ namespace DiscordBot
 			try {
                 IUserMessage message = channel.GetMessageAsync(cachedMessage.Id).Result as IUserMessage;
 
-                if (baned_people.Contains(message.Author.Id) || reaction.User.Value.IsBot) {
+                if (baned_people.Contains(reaction.User.Value.Id) || reaction.User.Value.IsBot) {
                     return;
                 }
 
                 if (Utils.isAdmin(reaction.UserId)) {
+                    IUserMessage nsfwMessage = Utils.isThisNsfwInProgress(message);
 
-                    if (reaction.Emote.ToString() == "❎") {
+                    if (nsfwMessage != null) {
+                        if (reaction.Emote.ToString() == "✅") {
+                            await message.DeleteAsync();
+                            Utils.nsfwProcessing(nsfwMessage);
+                            Utils.removeSnfwMessage(message);
+                        }
+                        else if (reaction.Emote.ToString() == "❎") {
+                            await message.DeleteAsync();
+                            await nsfwMessage.RemoveAllReactionsAsync();
+                            Utils.removeSnfwMessage(message);
+                        }
+                    }
+                    else if (channel.Id == channels["musique"] && reaction.Emote.ToString() == "❎") {
                         string result = database.removeMusic(Utils.getYtLink(message.Content));
 
                         if (result == String.Empty) {
@@ -162,36 +177,14 @@ namespace DiscordBot
                         }
                     }
                     else if (reaction.Emote.ToString() == Utils.NSFW_EMOJI) {
-                        //renvoyer dans le meme channel un embed qui met l'icone NSFW + qui dit qui a commit la faute
-                        var embed = Utils.getNsfwEmbed(message.Author);
-
-                        if (embed != null) {
-                            await message.Channel.SendMessageAsync("", false, embed);
-                        }
-                        else {
-                            await message.Channel.SendMessageAsync("What do fock.");
-                        }
-
-                        //renvoyer le message dans le channel nsfw
-                        ulong channelTo = channels["debugs"];
-
-                        if (message.Attachments.Count == 0) {
-                            await Utils.sendMessageTo(channelTo, "*--Content proposed by " + message.Author.Mention + "--*\n" + message.Content);
-                        }
-                        else {
-                            foreach (IAttachment attachment in message.Attachments) {
-                                await Utils.sendMessageTo(channelTo, "*--Content proposed by "+message.Author.Mention+"--*\n"+message.Content+"\n"+ attachment.Url);
-                            }
-                        }
-                        
-                        //supprimer le message originel
-                        await message.DeleteAsync();
+                        Utils.nsfwProcessing(message);
                     }
                 }
                 else {
                     if (reaction.Emote.ToString() == Utils.NSFW_EMOJI) {
                         int result = 0;
-                        IEmote nsfw = Utils.getEmoteFromGuild(guild, Utils.NSFW_EMOJI);
+                        //IEmote nsfw = Utils.getEmoteFromGuild(guild, Utils.NSFW_EMOJI);
+                        IEmote nsfw = new Emoji(Utils.NSFW_EMOJI);
                         var reactedUsers = await message.GetReactionUsersAsync(nsfw, 100).FlattenAsync();
 
                         IUser user = null;
@@ -207,13 +200,16 @@ namespace DiscordBot
                         if (result == 1) {
                             await message.AddReactionAsync(nsfw);
                             Embed embed = Utils.quote(message, reaction.User.Value);
+                            IUserMessage messageSent = null;
 
                             if (embed != null) {
-                                await message.Channel.SendMessageAsync("<@&328899154887835678> Is this NSFW ? *reported by " + user.Mention + "*", false, embed);
+                                messageSent = await message.Channel.SendMessageAsync("<@&328899154887835678> Is this NSFW ? *reported by " + user.Mention + "*", false, embed);
                             }
                             else {
-                                await message.Channel.SendMessageAsync("<@&328899154887835678> Is this NSFW ? *reported by " + user.Mention + "*");
+                                messageSent = await message.Channel.SendMessageAsync("<@&328899154887835678> Is this NSFW ? *reported by " + user.Mention + "*");
                             }
+                            await messageSent.AddReactionsAsync(new Emoji[] { new Emoji("✅"), new Emoji("❎") });
+                            nsfw_content_inprocess.Add(messageSent, message);
                         }
                     }
                 }
@@ -409,7 +405,7 @@ namespace DiscordBot
                                 await message.Channel.SendMessageAsync("", false, Utils.quote(msg, message.Author));
                             }
                         }
-                        catch (Exception e) {
+                        catch (Exception) {
                             await message.Channel.SendMessageAsync("This command can be use like this : !quote message_id (je parle du vrai ID, écrivez pas message_id bande de fdp).");
                         }
                     }
@@ -435,15 +431,7 @@ namespace DiscordBot
 
 			if (message_lower.StartsWith("!d")) {
 				try {
-                    var args = message_lower.Split(' ');
-                    ulong messageId = UInt64.Parse(args[1]);
-
-                    if (!(message.Channel is SocketGuildChannel)) {
-                        goto End;
-                    }
-                    IMessage msg = await Utils.getMessageFromId(messageId, ((SocketGuildChannel)message.Channel).Guild);
-
-                    await message.Channel.SendMessageAsync("", false, Utils.quote(msg));
+                    Utils.getBannedUsersList();
                 }
 				catch (Exception e) {
 					Utils.displayException(e, "!d");

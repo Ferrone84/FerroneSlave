@@ -27,7 +27,7 @@ namespace DiscordBot
         public static string flip = "(╯°□°）╯︵ ┻━┻";
         public static string unflip = "┬─┬﻿ ノ( ゜-゜ノ)";
 
-        public static string NSFW_EMOJI = "<:nsfw:539906959617425418>";
+        public static string NSFW_EMOJI = "🔞"/*"<:nsfw:539906959617425418>"*/;
 
         public static string DB_FILE_SAVE = @"bdd_save.db";
 		public static string DB_FILE_NAME = @"resources/bdd.db";
@@ -529,7 +529,9 @@ namespace DiscordBot
 								foreach (var user in users) {
 									subs += "<@" + user + "> ";
 								}
-								await sendMessageTo(Program.channels["mangas"], msg + " " + subs + " // *(" + pNotif.Text+")*");
+                                if (isVF) {
+                                    await sendMessageTo(Program.channels["mangas"], msg + " " + subs);
+                                }
 								processedMangas.Add(mangaName);
 							}
 						}
@@ -543,7 +545,9 @@ namespace DiscordBot
 							foreach (var user in users) {
 								subs += "<@" + user + "> ";
 							}
-							await sendMessageTo(Program.channels["mangas"], msg + " " + subs + " // *(" + pNotif.Text + ")*");
+                            if (isVF) {
+                                await sendMessageTo(Program.channels["mangas"], msg + " " + subs);
+                            }
                             processedMangas.Add(mangaName);
 						}
 					}
@@ -952,6 +956,20 @@ namespace DiscordBot
 			return msg;
 		}
 
+        public static string getBannedUsersList()
+        {
+            if (Program.baned_people.Count == 0) {
+                return "La liste est vide.";
+            }
+
+            string result = "Voici la liste des gens bannis : \n";
+            foreach (var bannedUser in Program.baned_people) {
+                result += "\t - " + Program._client.GetUser(bannedUser).ToString() + " (" + bannedUser + ")";
+            }
+
+            return result;
+        }
+
 		public static void actionUsed(string action)
 		{
 			var actions_used = Program.actions_used;
@@ -1062,6 +1080,56 @@ namespace DiscordBot
             }
 
             return embedBuilder.Build();
+        }
+
+        public static IUserMessage isThisNsfwInProgress(IUserMessage message)
+        {
+            foreach (var msg in Program.nsfw_content_inprocess) {
+                if (msg.Key.Id == message.Id) {
+                    return msg.Value;
+                }
+            }
+            return null;
+        }
+
+        public static void removeSnfwMessage(IUserMessage message)
+        {
+            foreach (var msg in Program.nsfw_content_inprocess) {
+                if (msg.Key.Id == message.Id) {
+                    Program.nsfw_content_inprocess.Remove(message);
+                }
+            }
+        }
+
+        public static async void nsfwProcessing(IUserMessage message)
+        {
+            //renvoyer dans le meme channel un embed qui met l'icone NSFW + qui dit qui a commit la faute
+            var embed = Utils.getNsfwEmbed(message.Author);
+
+            if (embed != null) {
+                await message.Channel.SendMessageAsync("", false, embed);
+            }
+            else {
+                await message.Channel.SendMessageAsync("What do fock.");
+            }
+
+            //renvoyer le message dans le channel nsfw
+            ulong channelTo = Program.channels["nsfw"];
+
+            if (message.Attachments.Count == 0) {
+                await Utils.sendMessageTo(channelTo, "*--Content proposed by " + message.Author.Mention + "--*\n" + message.Content);
+            }
+            else {
+                foreach (IAttachment attachment in message.Attachments) {
+                    await Utils.sendMessageTo(channelTo, "*--Content proposed by " + message.Author.Mention + "--*\n" + message.Content + "\n" + attachment.Url);
+                }
+            }
+
+            //supprimer le message originel
+            try {
+                await message.DeleteAsync();
+            }
+            catch (Exception) { }
         }
 
 

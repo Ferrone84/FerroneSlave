@@ -36,6 +36,7 @@ namespace DiscordBot
 			add("!pokemon", "Permet d'afficher les infos d'un pokemon.", allPokemonInfo);
             add("!popactions", "Permet d'afficher les actions les plus populaires.", popActions);
             add("!quote", "Permet de citer le message de quelqu'un.", quote);
+            add("!banned", "Affiche la liste des gens bannis.", banned);
 
             add("!!display", "Affiche la bdd.", displayBdd);
 			add("!!ban", "Ajoute un utilisateur à la liste des utilisateurs bannis.", banUser);
@@ -301,6 +302,11 @@ namespace DiscordBot
             }
 
             return msg;
+        }
+
+        private string banned(SocketMessage message)
+        {
+            return Utils.getBannedUsersList();
         }
 
 
