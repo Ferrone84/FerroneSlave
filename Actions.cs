@@ -68,8 +68,9 @@ namespace DiscordBot
 			add("hanauta sancho" + Utils.otherSplitChar + @"hanauta|sancho|yahazu\s*giri", "Le génie de Brook.", sancho);
 			add("detroit smash" + Utils.otherSplitChar + @"d+e+t+r+o+i+t+|s+m+a+s+h+", "Cqfd.", detroitSmash);
 			add("repent", "YOU WILL HAVE TO REPENT TO THIS MAN.", repent);
-			add("latata", "Do I really need to say something?", latata);
-		}
+            add("latata", "Do I really need to say something?", latata);
+            add("DEJA VU" + Utils.otherSplitChar + @"d[ée]+j[aà]+\s*vu+", "😏", dejavu);
+        }
 
 		private void add(string command, string description, Func<SocketMessage, string> method)
 		{
@@ -557,11 +558,16 @@ namespace DiscordBot
 		private string repent(SocketMessage message)
 		{
 			return "https://cdn.discordapp.com/attachments/309407896070782976/515615289988087808/repent.mp4";
-		}
+        }
 
-		private string latata(SocketMessage message)
-		{
-			return "https://www.youtube.com/watch?v=9mQk7Evt6Vs";
-		}
-	}
+        private string latata(SocketMessage message)
+        {
+            return "https://www.youtube.com/watch?v=9mQk7Evt6Vs";
+        }
+
+        private string dejavu(SocketMessage message)
+        {
+            return "https://youtu.be/dv13gl0a-FA?t=60";
+        }
+    }
 }
