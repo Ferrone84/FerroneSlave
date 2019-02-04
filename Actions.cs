@@ -60,7 +60,7 @@ namespace DiscordBot
 
 			add("bite", "Si ta phrase contient une bite ou plusieurs alors PEPE*biteNumber.", bite);
 			add("musique de génie" + Utils.otherSplitChar + @"musique de g[ée]nie", "Le jour où tu veux écouter de la vrai musique.", musiqueGenie);
-			add("gamabunta" + Utils.otherSplitChar + @"gamabunta|boss", "Meme naruto du BOSS.", gamabunta);
+			add("gamabunta" + Utils.otherSplitChar + @"^(?=.*\bnaruto\b)(?=.*\bboss\b).*$|gamabunta", "Meme naruto du BOSS.", gamabunta);
 			add("invocation", "Meme naruto.", invocation);
 			add("welcome", "Meme Resident Evil 4.", welcome);
 			add("évidemment"+Utils.otherSplitChar+ @"[ée]videmment", "Meme Antoine Daniel.", evidemment);

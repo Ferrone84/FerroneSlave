@@ -116,7 +116,7 @@ namespace DiscordBot
 			database = new Database();
 			autres = new List<string>();
 			pp_songs = new List<string>();
-            baned_people = new List<ulong>();
+            baned_people = SaveStateManager.Load<List<ulong>>("banned.bin") ?? new List<ulong>();
             people_spam = new Dictionary<ulong, int>();
 			actions_used = new Dictionary<string, int>();
             mangasData = new SortedDictionary<string, string>();
@@ -399,8 +399,14 @@ namespace DiscordBot
 
                             if (message.Channel is SocketGuildChannel) {
                                 IMessage msg = await Utils.getMessageFromId(messageId, ((SocketGuildChannel)message.Channel).Guild);
+                                if (msg == null) {
+                                    throw new InvalidOperationException("Le message '"+messageId+"' n'existe pas (ou n'est plus dans le cache du bot).");
+                                }
                                 await message.Channel.SendMessageAsync("", false, Utils.quote(msg, message.Author));
                             }
+                        }
+                        catch (InvalidOperationException e) {
+                            await message.Channel.SendMessageAsync(e.Message);
                         }
                         catch (Exception) {
                             await message.Channel.SendMessageAsync("This command can be use like this : !quote message_id (je parle du vrai ID, écrivez pas message_id bande de fdp).");

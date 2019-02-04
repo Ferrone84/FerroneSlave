@@ -27,7 +27,7 @@ namespace DiscordBot
         public static string flip = "(╯°□°）╯︵ ┻━┻";
         public static string unflip = "┬─┬﻿ ノ( ゜-゜ノ)";
 
-        public static string NSFW_EMOJI = "🔞"/*"<:nsfw:539906959617425418>"*/;
+        public static string NSFW_EMOJI = "🔞";
 
         public static string DB_FILE_SAVE = @"bdd_save.db";
 		public static string DB_FILE_NAME = @"resources/bdd.db";
@@ -940,6 +940,8 @@ namespace DiscordBot
 				msg = "L'utilisateur a bien été banni.";
 			}
 
+            SaveStateManager.Save("banned.bin", Program.baned_people);
+
 			return msg;
 		}
 
@@ -951,9 +953,11 @@ namespace DiscordBot
 			if (Program.baned_people.Contains(userId_)) {
 				Program.baned_people.Remove(userId_);
 				msg = "L'utilisateur a bien été retiré des utilisateurs bannis.";
-			}
+            }
 
-			return msg;
+            SaveStateManager.Save("banned.bin", Program.baned_people);
+
+            return msg;
 		}
 
         public static string getBannedUsersList()
@@ -1053,12 +1057,13 @@ namespace DiscordBot
                 return null;
             }
 
-            int counter = 0;
+            int maximum = -1;
             Color color = new Color(75, 75, 75);
             var guild = ((SocketGuildChannel)channel).Guild;
 
             foreach (var role in ((SocketGuildUser)message.Author).Roles) {
-                if (counter++ == 1) {
+                if (maximum < role.Position) {
+                    maximum = role.Position;
                     color = role.Color;
                 }
             }
