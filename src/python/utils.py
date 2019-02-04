@@ -3,7 +3,7 @@
 import codecs
 
 #Globales
-BDD_NAME = 'resources/bdd.db'
+BDD_NAME = 'resources/binaries/bdd.db'
 
 
 #Functions

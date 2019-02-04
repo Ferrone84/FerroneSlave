@@ -29,27 +29,12 @@ namespace DiscordBot
 
         public static string NSFW_EMOJI = "🔞";
 
-        public static string DB_FILE_SAVE = @"bdd_save.db";
-		public static string DB_FILE_NAME = @"resources/bdd.db";
-		public static string PP_FILE_NAME = @"resources/pp.txt";
-		public static string LOGS_FILE_NAME = @"resources/logs.txt";
-		public static string PYTHON_DIR_PATH = @"resources/python/";
-		public static string TOKEN_FILE_NAME = @"resources/token.txt";
-		public static string POP_ACTIONS_FILE = @"resources/pop_actions.txt";
-		public static string TRAJETS_FILE_NAME = @"resources/trajets.txt";
-		public static string POKEMONS_FILE_NAME = @"resources/pokemons.p";
-		public static string ERRORSLOG_FILE_NAME = @"resources/errors.txt";
-		public static string MANGASDATA_FILE_NAME = @"resources/data.txt";
-		public static string MANGASDATA_FILE_NAME2 = @"resources/data2.txt";
-		public static string MANGASDATA_FILE_NAME3 = @"resources/feed_data.txt";
-
-		public static string PYTHON_EXE = @"C:\Users\utilisateur\AppData\Local\Programs\Python\Python37\python.exe";
 
 
 		public static void init()
 		{
 			if (isLinux) {
-				PYTHON_EXE = @"/usr/bin/python3";
+				Data.Python.PYTHON_EXE = @"/usr/bin/python3";
 			}
 		}
 
@@ -62,7 +47,7 @@ namespace DiscordBot
 
 		public static void displayException(Exception e, string message = "Error")
 		{
-			Console.WriteLine(message + " : \n" + e.Message + "\n");
+			Console.WriteLine(message + " : (" + e.GetType().Name + ") \n" + e.Message + "\n");
 			Console.WriteLine(e.StackTrace + "\n");
 		}
 
@@ -76,7 +61,6 @@ namespace DiscordBot
 		{
 			string result = String.Empty;
 			string arguments = String.Empty;
-			string file = PYTHON_DIR_PATH + fileName;
 
 			if (args.Length != 0) {
 				arguments += " ";
@@ -89,12 +73,12 @@ namespace DiscordBot
 			}
 
 			// Create new process start info 
-			ProcessStartInfo myProcessStartInfo = new ProcessStartInfo(PYTHON_EXE);
+			ProcessStartInfo myProcessStartInfo = new ProcessStartInfo(Data.Python.PYTHON_EXE);
 
 			// make sure we can read the output from stdout 
 			myProcessStartInfo.UseShellExecute = false;
 			myProcessStartInfo.RedirectStandardOutput = true;
-			myProcessStartInfo.Arguments = file + arguments;
+			myProcessStartInfo.Arguments = fileName + arguments;
 
 			Process myProcess = new Process();
 			// assign start information to the process 
@@ -207,10 +191,10 @@ namespace DiscordBot
 
 		public static SocketChannel getChannel(ulong channel)
 		{
-			return Program._client.GetChannel(channel);
+			return Data._client.GetChannel(channel);
 		}
 
-		public static IEnumerable<IMessage> getMessages(SocketChannel channel)
+		public static IEnumerable<IMessage> getMessages(SocketTextChannel channel)
 		{
 			return ((SocketTextChannel) channel).GetMessagesAsync(0, Direction.After).FlattenAsync().Result;
 		}
@@ -276,7 +260,7 @@ namespace DiscordBot
 			int number = 1;
 			string result = "Voici les mangas qui sont check avec le web parser :\n";
 
-			foreach (KeyValuePair<string, string> kvp in Program.mangasData) {
+			foreach (KeyValuePair<string, string> kvp in Data.mangasData) {
 				result += "- " + kvp.Key + " (**" + number + "**)\n";
 				number++;
 			}
@@ -288,178 +272,12 @@ namespace DiscordBot
 		{
 			string result = "Voici, pour chaque manga, son dernier scan :\n\n";
 
-			foreach (KeyValuePair<string, string> kvp in Program.mangasData) {
+			foreach (KeyValuePair<string, string> kvp in Data.mangasData) {
 				var kvpValue = kvp.Value.Split(new[] { " => " }, StringSplitOptions.None);
 				result += "```asciidoc\n[" + kvp.Key + "]```" + kvpValue[0] + "\n" + kvpValue[1] + "\n\n";
 			}
 
 			return splitBodies(result, "\n\n");
-		}
-
-		public static string lastChapter(string message_lower)
-		{
-			string msg = String.Empty;
-			try {
-				string manga = message_lower.Split(' ')[1];
-				manga.debug();
-				msg = getLastChapterOf(manga);
-			}
-			catch (ArgumentOutOfRangeException) {
-				msg = "Ce manga n'existe pas. Le nom doit être de la forme : one-piece";
-			}
-			catch (TimeoutException) {
-				msg = "Le site doit être en maintenance (timeout du crawl).";
-			}
-			catch (Exception) {
-				msg = "La commande est mal écrite. Elle doit être de la forme : !lastchapter one-piece";
-			}
-			return msg;
-		}
-
-		public static string getLastChapterOf(string manga)
-		{
-			return "Impossible at the time being.";
-		}
-
-		//japscan V1
-		public static string old_getLastChapterOf(string manga)
-		{
-			string site = "https://www.japscan.cc";
-			string url = site + "/mangas/" + manga;
-			Supremes.Nodes.Document document = null;
-			try {
-				document = Dcsoup.Parse(new Uri(url), timeout);
-			}
-			catch (Exception) {
-				throw new TimeoutException("Timeout on : <" + url + ">");
-			}
-			var divChaptersList = document.Select("div[id=liste_chapitres]");
-
-			var firstChapterCatch = divChaptersList.Select("ul").Select("li").Select("a")[0];
-			var firstChapterName = firstChapterCatch.Text;
-			var link = site + firstChapterCatch.ToString().Split('\"')[1];
-			var version = "(VF)";
-			try {
-				if (manga == "my-hero-academia") { //TODO mettre un meilleur scotch que ça
-					var words = firstChapterName.Split(' ');
-					var chapterNumber = Int32.Parse(words[4]);
-					if (chapterNumber > 200) {
-						goto Skip;
-					}
-				}
-				version = divChaptersList.Select("ul").Select("li").Select("span")[0].Text;
-			}
-			catch (ArgumentOutOfRangeException) { /*displayException(e, "ArgumentOutOfRangeException, getLastChapterOf(string manga)");*/ }
-
-			if (version == "(RAW)")
-				version = "(JAP)";
-			Skip:
-			return firstChapterName + " **" + version + "** => <" + link + ">";
-		}
-
-		//japscan V2
-		public static string new_getLastChapterOf(string manga)
-		{
-			string site = "https://www.japscan.to";
-			string url = site + "/manga/" + manga;
-			("url : " + url).debug();
-
-			Supremes.Nodes.Document document = null;
-			try {
-				document = Dcsoup.Parse(new Uri(url), timeout);
-			}
-			catch (Exception) {
-				("Timeout on : <" + url + ">").debug();
-				throw new TimeoutException("Timeout on : <" + url + ">");
-			}
-			("document: " + document).debug();
-
-			System.IO.File.WriteAllText(ERRORSLOG_FILE_NAME, document.ToString());
-
-			var divChaptersList = document.Select("div[id=chapters_list]");
-			("divChaptersList: " + divChaptersList).debug();
-
-			var firstChapterCatch = divChaptersList.Select("div").Select("div").Select("a")[0];
-			var firstChapterName = firstChapterCatch.Text;
-			var link = site + firstChapterCatch.ToString().Split('\"')[1];
-			("firstChapterName : " + firstChapterName).debug();
-			("link : " + link).debug();
-			var version = "(VF)";
-			try {
-				if (manga == "my-hero-academia") { //TODO mettre un meilleur scotch que ça
-					var words = firstChapterName.Split(' ');
-					var chapterNumber = Int32.Parse(words[4]);
-					if (chapterNumber > 200) {
-						goto Skip;
-					}
-				}
-				version = divChaptersList.Select("div").Select("div").Select("span")[0].Text;
-			}
-			catch (ArgumentOutOfRangeException) { /*displayException(e, "ArgumentOutOfRangeException, getLastChapterOf(string manga)");*/ }
-
-			if (version == "(RAW)") {
-				version = "(JAP)";
-			}
-		Skip:
-			return firstChapterName + " **" + version + "** => <" + link + ">";
-		}
-
-		//lirescan V1
-		public static async void mangasCrawlerOnLireScan()
-		{
-			string site = "https://www.lirescan.me/";
-			string url = site + "rss/";
-			var time = DateTime.Now;
-			("mangasCrawlerOnLireScan (" + time + ")").println();
-
-			try {
-				XmlReader reader = XmlReader.Create(url);
-				SyndicationFeed feed = SyndicationFeed.Load(reader);
-				reader.Close();
-
-				List<string> processedMangas = new List<string>();
-				foreach (SyndicationItem item in feed.Items) {
-					String title = item.Title.Text;
-					String link = item.Links[0].Uri.ToString();
-					String description = item.Summary.Text;
-					string mangaName = mangaNameToLowerCase(title);
-					bool mangaExists = Program.mangasData.ContainsKey(mangaName);
-
-					link = link.Replace("http://www.lirescan.com/", "");
-					link = site + mangaName + link;
-
-					if (mangaExists && !processedMangas.Contains(mangaName)) {
-						string scanValue = title + " => <" + link + ">";
-
-						if (Program.mangasData[mangaName] != scanValue) {
-							Program.mangasData.Remove(mangaName);
-							Program.mangasData.Add(mangaName, scanValue);
-
-							string subs = String.Empty;
-							var users = Program.database.getSubs(mangaName);
-							string msg = "Nouveau scan trouvé pour " + mangaName + " : \n\t" + scanValue;
-
-							foreach (var user in users) {
-								subs += "<@" + user + "> ";
-							}
-							await sendMessageTo(Program.channels["mangas"], msg + " " + subs);
-						}
-						processedMangas.Add(mangaName);
-					}
-				}
-
-				System.IO.File.WriteAllText(MANGASDATA_FILE_NAME2, imitateMangasData());
-			}
-			catch (Exception e) {
-				await sendMessageTo(Program.channels["debug"], "Le crawl des mangas a échoué, car la connexion au site a échouée.\n" + e);
-				displayException(e, "Exception on mangasCrawlerOnLireScan()");
-			}
-
-			var now = DateTime.Now - time;
-			("search done. (" + DateTime.Now + ") [" + now + "]").println();
-			//Thread.Sleep(10800000);     //3h
-			Thread.Sleep(1800000);  //30min
-			mangasCrawlerOnLireScan();
 		}
 
 		//lirescan V2
@@ -478,19 +296,18 @@ namespace DiscordBot
 				int crawler_counter = 0;
 				string data = String.Empty;
 				List<string> processedMangas = new List<string>();
-				string text_data = System.IO.File.ReadAllText(MANGASDATA_FILE_NAME3);
+				string text_data = System.IO.File.ReadAllText(Data.Text.MANGASDATA_RSS_FILE);
 
 				foreach (SyndicationItem item in feed.Items) {
 					String title = item.Title.Text;
 					String link = item.Links[0].Uri.ToString();
 					String description = item.Summary.Text;
 					string mangaName = mangaNameToLowerCase(title);
-					bool mangaExists = Program.mangasData.ContainsKey(mangaName);
+					bool mangaExists = Data.mangasData.ContainsKey(mangaName);
 					link = link.Replace("http://www.lirescan.com/", "");
 					link = site + mangaName + link;
 
 					string chapter = title + splitChar + link + splitChar + description;
-					string full_d = mangaName + "/" + mangaExists + "/" + !text_data.Contains(chapter) + "/" + !processedMangas.Contains(mangaName);
 
 					if (mangaExists && !processedMangas.Contains(mangaName)) {
                         Supremes.Nodes.Document document = null;
@@ -523,14 +340,14 @@ namespace DiscordBot
 								("rentre (" + crawler_counter.ToString() + " < " + data_counter.ToString() + " )").debug();
 								string scanValue = title + " => <" + link + ">";
 								string subs = String.Empty;
-								var users = Program.database.getSubs(mangaName);
+								var users = Data.database.getSubs(mangaName);
 								string msg = "Nouveau scan trouvé pour " + mangaName + " : \n\t" + scanValue;
 
 								foreach (var user in users) {
 									subs += "<@" + user + "> ";
 								}
                                 if (isVF) {
-                                    await sendMessageTo(Program.channels["mangas"], msg + " " + subs);
+                                    await sendMessageTo(Data.channels["mangas"], msg + " " + subs);
                                 }
 								processedMangas.Add(mangaName);
 							}
@@ -539,14 +356,14 @@ namespace DiscordBot
 							"rentre (notInList)".debug();
 							string scanValue = title + " => <" + link + ">";
 							string subs = String.Empty;
-							var users = Program.database.getSubs(mangaName);
+							var users = Data.database.getSubs(mangaName);
 							string msg = "Nouveau scan trouvé pour " + mangaName + " : \n\t" + scanValue;
 
 							foreach (var user in users) {
 								subs += "<@" + user + "> ";
 							}
                             if (isVF) {
-                                await sendMessageTo(Program.channels["mangas"], msg + " " + subs);
+                                await sendMessageTo(Data.channels["mangas"], msg + " " + subs);
                             }
                             processedMangas.Add(mangaName);
 						}
@@ -556,10 +373,10 @@ namespace DiscordBot
 					crawler_counter++;
 				}
 
-				System.IO.File.WriteAllText(MANGASDATA_FILE_NAME3, data);
+				System.IO.File.WriteAllText(Data.Text.MANGASDATA_RSS_FILE, data);
 			}
 			catch (Exception e) {
-				await sendMessageTo(Program.channels["debug"], "Le crawl des mangas a échoué, car la connexion au site a échouée.\n" + e);
+				await sendMessageTo(Data.channels["debug"], "Le crawl des mangas a échoué, car la connexion au site a échouée.\n" + e);
 				displayException(e, "Exception on mangasCrawlerOnLireScan()");
 			}
 
@@ -593,25 +410,25 @@ namespace DiscordBot
 
 		public static string addManga(string message_lower)
 		{
-			return "";
+			return "Need rework."; //faire un crawl pour voir si le manga existe, je l'ai delete, mais je l'avais déjà fait pour check les mangas existant sur le site
 		}
-
+		/*
 		public static string old_addManga(string message_lower)
 		{
 			string msg = String.Empty;
 			try {
 				string manga = message_lower.Split(' ')[1];
-				if (Program.mangasData.ContainsKey(manga)) {
+				if (Data.mangasData.ContainsKey(manga)) {
 					msg = "Ce manga est déjà dans la liste poto ! :)";
 					return msg;
 				}
 				string chapter = getLastChapterOf(manga);
 
 				string result = "\n" + manga + "|" + chapter;
-				System.IO.File.AppendAllText(MANGASDATA_FILE_NAME, result);
+				System.IO.File.AppendAllText(Data.Text.MANGASDATA_FILE_NAME, result);
 				setupMangasData();
 
-				Program.database.addManga(manga);
+				Data.database.addManga(manga);
 				msg = "Manga '" + manga + "' ajouté à la liste.";
 			}
 			catch (ArgumentOutOfRangeException) {
@@ -621,7 +438,7 @@ namespace DiscordBot
 				msg = "La commande est mal écrite. Elle doit être de la forme : !addmanga one-piece";
 			}
 			return msg;
-		}
+		}*/
 
 		public static string displayAllActions()
 		{
@@ -629,7 +446,7 @@ namespace DiscordBot
 			string typeSave = String.Empty;
 			string result = "Voici toutes les options du bot par catégorie :\n";
 
-			foreach (var action in Program.actions.getActions) {
+			foreach (var action in Data.actions.getActions) {
 				if (action.Item2 == String.Empty) { continue; }
 				type = Actions.getActionType(action.Item1);
 
@@ -638,68 +455,17 @@ namespace DiscordBot
 					result += "\n[" + type + "]\n";
 				}
                 
-				result += "\t - " + action.Item1.Split(otherSplitChar)[0] + " : " + action.Item2 + "\n";
+				result += "- " + action.Item1.Split(otherSplitChar)[0] + " : " + action.Item2 + "\n";
 			}
 
 			return splitBodies(result);
 		}
 
-		public static async void getAllNewChapters()
-		{
-			var time = DateTime.Now;
-			Console.WriteLine("getAllNewChapters (" + time + ")");
-			foreach (KeyValuePair<string, string> kvp in Program.mangasData) {
-				try {
-					string chapter = getLastChapterOf(kvp.Key);
-					if (kvp.Value != chapter) {
-						string toWrite = imitateMangasData(); //digoulasse ^9000
-						int pos = toWrite.IndexOf(kvp.Key) + kvp.Key.Length + 1;
-						int nextLinePos = toWrite.IndexOf('\n', pos);
-
-						if (nextLinePos == -1)
-							nextLinePos = toWrite.Length;
-
-						toWrite = toWrite.Remove(pos, nextLinePos - pos);
-						toWrite = toWrite.Insert(pos, chapter);
-
-						System.IO.File.WriteAllText(MANGASDATA_FILE_NAME, toWrite);
-
-						string subs = String.Empty;
-						var users = Program.database.getSubs(kvp.Key);
-
-						foreach (var user in users) {
-							subs += "<@" + user + "> ";
-						}
-
-						string msg = "Nouveau scan trouvé pour " + kvp.Key + " : \n\t" + chapter;
-						if (!chapter.Contains("VUS") && !chapter.Contains("JAP") && !chapter.Contains("SPOILER") && !chapter.Contains("RAW"))
-							await sendMessageTo(Program.channels["mangas"], msg + " " + subs);
-
-						setupMangasData();
-					}
-				}
-				catch (TimeoutException) {
-					await sendMessageTo(Program.channels["debug"], "Le crawl des mangas a échoué, car la connexion au site a été plus longue que le timeout de " + timeout + "ms.");
-					goto Loop;
-				}
-				catch (Exception e) {
-					displayException(e, "Exception on getAllNewChapters()");
-				}
-			}
-
-		Loop:
-			var now = DateTime.Now - time;
-			Console.WriteLine("search done. (" + DateTime.Now + ") [" + now + "]");
-			//Thread.Sleep(10800000);     //3h
-			Thread.Sleep(1800000);  //30min
-			getAllNewChapters();
-        }
-
         public static async Task sendMessageTo(ulong channel, string message)
         {
             try {
                 foreach (var msg in splitBodies(message).Split(splitChar)) {
-                    await ((SocketTextChannel)Program._client.GetChannel(channel)).SendMessageAsync(msg);
+                    await ((SocketTextChannel)Data._client.GetChannel(channel)).SendMessageAsync(msg);
                 }
             }
             catch (Exception e) {
@@ -710,7 +476,7 @@ namespace DiscordBot
         public static async Task sendFileTo(ulong channel, string filePath, string message)
         {
             try {
-                await ((SocketTextChannel)Program._client.GetChannel(channel)).SendFileAsync(filePath, message);
+                await ((SocketTextChannel)Data._client.GetChannel(channel)).SendFileAsync(filePath, message);
             }
             catch (Exception e) {
                 displayException(e, "Impossible to send message, sendFileTo(ulong channel, string filePath, string message)");
@@ -741,7 +507,7 @@ namespace DiscordBot
 			string result = day + ":" + hour + "=" + duration + "\n";
 
 			if (Int32.Parse(time.Hour.ToString()) > 8 && Int32.Parse(time.Hour.ToString()) < 21)
-				System.IO.File.AppendAllText(TRAJETS_FILE_NAME, result);
+				System.IO.File.AppendAllText(Data.Text.TRAJETS_FILE, result);
 
 			var now = DateTime.Now - time;
 			Console.WriteLine("fill traffic data done. (" + DateTime.Now + ") [" + now + "]");
@@ -753,8 +519,8 @@ namespace DiscordBot
 		public static string randomPpSong()
 		{
 			Random r = new Random();
-			int rInt = r.Next(0, Program.pp_songs.Count - 1);
-			var result = Program.pp_songs[rInt];
+			int rInt = r.Next(0, Data.pp_songs.Count - 1);
+			var result = Data.pp_songs[rInt];
 
 			return result;
 		}
@@ -763,11 +529,11 @@ namespace DiscordBot
 		{
 			string result = String.Empty;
 			try {
-				string maxId = Program.database.getMaxId("musics");
+				string maxId = Data.database.getMaxId("musics");
 				Random r = new Random();
 				do {
 					int rInt = r.Next(1, Convert.ToInt32(maxId));
-					result = Program.database.getLineColumn("musics", "title", rInt.ToString());
+					result = Data.database.getLineColumn("musics", "title", rInt.ToString());
 
 				} while (result == String.Empty);
 
@@ -808,7 +574,7 @@ namespace DiscordBot
 		{
 			string result = String.Empty;
 
-			foreach (KeyValuePair<string, string> kvp in Program.mangasData) {
+			foreach (KeyValuePair<string, string> kvp in Data.mangasData) {
 				result += kvp.Key + "|" + kvp.Value + "\n";
 			}
 
@@ -832,7 +598,7 @@ namespace DiscordBot
 
 		public static bool isAdmin(ulong id)
 		{
-			return Program.database.isAdmin(id.ToString());
+			return Data.database.isAdmin(id.ToString());
 		}
 
 		public static void alert(ulong channel, string message = "")
@@ -848,7 +614,7 @@ namespace DiscordBot
 
 		public static void savePokemons()
 		{
-			string allText = System.IO.File.ReadAllText(POKEMONS_FILE_NAME);
+			string allText = System.IO.File.ReadAllText(Data.Text.POKEMONS_FILE);
 			string[] pokemons = allText.Split("<pokemon>\r\n");
 
 			foreach (string pokemon in pokemons) {
@@ -860,18 +626,18 @@ namespace DiscordBot
 				int catchRate = Int32.Parse(infos[3]);
 				int rarityTier = Int32.Parse(infos[4]);
 
-				Program.database.addPokemon(id, urlIcon, name, catchRate, rarityTier);
+				Data.database.addPokemon(id, urlIcon, name, catchRate, rarityTier);
 			}
 		}
 
 		public static string getPokemonCatchRate(String pokemonName)
 		{
-			return Program.database.getPokemonInfo(pokemonName, Program.PokemonInfo.name, Program.PokemonInfo.catchRate);
+			return Data.database.getPokemonInfo(pokemonName, Data.PokemonInfo.name, Data.PokemonInfo.catchRate);
 		}
 
 		public static string getPokemonRarityTier(String pokemonName)
 		{
-			return Program.database.getPokemonInfo(pokemonName, Program.PokemonInfo.name, Program.PokemonInfo.rarityTier);
+			return Data.database.getPokemonInfo(pokemonName, Data.PokemonInfo.name, Data.PokemonInfo.rarityTier);
 		}
 
 		public static string getPokemonCatchChances(float hp_percent, float catch_rate, float bonus_ball, float bonus_statut)
@@ -883,7 +649,7 @@ namespace DiscordBot
 
 		public static Embed getAllPokemonInfo(String pokemonName)
 		{
-			string pokemonInfos = Program.database.getPokemonInfos(pokemonName);
+			string pokemonInfos = Data.database.getPokemonInfos(pokemonName);
 			if (pokemonInfos == String.Empty) {
 				return null;
 			}
@@ -921,7 +687,7 @@ namespace DiscordBot
 
 		public static void emptyBannedPeopleStack()
 		{
-			Program.people_spam = new Dictionary<ulong, int>();
+			Data.people_spam = new Dictionary<ulong, int>();
 			Thread.Sleep(15000);
 			emptyBannedPeopleStack();
 		}
@@ -931,16 +697,16 @@ namespace DiscordBot
 			ulong userId_ = Convert.ToUInt64(onlyKeepDigits(userId));
 			string msg = "Cet utilisateur était déjà banni.";
 
-			if (userId_ == Program.master_id) {
+			if (userId_ == Data.master_id) {
 				return "Bien essayé, mais non. 😏";
 			}
 
-			if (!Program.baned_people.Contains(userId_)) {
-				Program.baned_people.Add(userId_);
+			if (!Data.baned_people.Contains(userId_)) {
+				Data.baned_people.Add(userId_);
 				msg = "L'utilisateur a bien été banni.";
 			}
 
-            SaveStateManager.Save("banned.bin", Program.baned_people);
+            SaveStateManager.Save(Data.Binary.BANNED_FILE, Data.baned_people);
 
 			return msg;
 		}
@@ -950,25 +716,25 @@ namespace DiscordBot
 			ulong userId_ = Convert.ToUInt64(onlyKeepDigits(userId));
 			string msg = "Cet utilisateur n'était pas banni.";
 
-			if (Program.baned_people.Contains(userId_)) {
-				Program.baned_people.Remove(userId_);
+			if (Data.baned_people.Contains(userId_)) {
+				Data.baned_people.Remove(userId_);
 				msg = "L'utilisateur a bien été retiré des utilisateurs bannis.";
             }
 
-            SaveStateManager.Save("banned.bin", Program.baned_people);
+            SaveStateManager.Save(Data.Binary.BANNED_FILE, Data.baned_people);
 
             return msg;
 		}
 
         public static string getBannedUsersList()
         {
-            if (Program.baned_people.Count == 0) {
+            if (Data.baned_people.Count == 0) {
                 return "La liste est vide.";
             }
 
             string result = "Voici la liste des gens bannis : \n";
-            foreach (var bannedUser in Program.baned_people) {
-                result += "\t - " + Program._client.GetUser(bannedUser).ToString() + " (" + bannedUser + ")";
+            foreach (var bannedUser in Data.baned_people) {
+                result += "\t - " + Data._client.GetUser(bannedUser).ToString() + " (" + bannedUser + ")";
             }
 
             return result;
@@ -976,7 +742,7 @@ namespace DiscordBot
 
 		public static void actionUsed(string action)
 		{
-			var actions_used = Program.actions_used;
+			var actions_used = Data.actions_used;
 
 			if (actions_used.ContainsKey(action)) {
 				actions_used[action]++;
@@ -984,20 +750,14 @@ namespace DiscordBot
 			else {
 				actions_used.Add(action, 1);
 			}
-
-			string actions = String.Empty;
-
-			foreach (KeyValuePair<string, int> kvp in actions_used) {
-				actions += kvp.Key + splitChar + kvp.Value.ToString() + "\n";
-			}
-
-			File.WriteAllText(POP_ACTIONS_FILE, actions);
+			
+			SaveStateManager.Save(Data.Binary.POP_ACTIONS_FILE, Data.actions_used);
 		}
 
 		public static string getPopActions()
 		{
 			string result = "Liste des actions les plus populaires :\n";
-			var sortedActionsUsed = from entry in Program.actions_used orderby entry.Value descending select entry;
+			var sortedActionsUsed = from entry in Data.actions_used orderby entry.Value descending select entry;
 
 			foreach (KeyValuePair<string, int> kvp in sortedActionsUsed) {
 				result += "- `" + kvp.Key + "` : " + kvp.Value.ToString() + "\n";
@@ -1089,7 +849,7 @@ namespace DiscordBot
 
         public static IUserMessage isThisNsfwInProgress(IUserMessage message)
         {
-            foreach (var msg in Program.nsfw_content_inprocess) {
+            foreach (var msg in Data.nsfw_content_inprocess) {
                 if (msg.Key.Id == message.Id) {
                     return msg.Value;
                 }
@@ -1099,9 +859,9 @@ namespace DiscordBot
 
         public static void removeSnfwMessage(IUserMessage message)
         {
-            foreach (var msg in Program.nsfw_content_inprocess) {
+            foreach (var msg in Data.nsfw_content_inprocess) {
                 if (msg.Key.Id == message.Id) {
-                    Program.nsfw_content_inprocess.Remove(message);
+                    Data.nsfw_content_inprocess.Remove(message);
                 }
             }
         }
@@ -1119,7 +879,7 @@ namespace DiscordBot
             }
 
             //renvoyer le message dans le channel nsfw
-            ulong channelTo = Program.channels["nsfw"];
+            ulong channelTo = Data.channels["nsfw"];
 
             if (message.Attachments.Count == 0) {
                 await Utils.sendMessageTo(channelTo, "*--Content proposed by " + message.Author.Mention + "--*\n" + message.Content);
@@ -1155,14 +915,14 @@ namespace DiscordBot
 		public static void setupMangasData()
 		{
 			try {
-				Program.mangasData = new SortedDictionary<string, string>();
-				string[] lines = System.IO.File.ReadAllLines(MANGASDATA_FILE_NAME2);
+				Data.mangasData = new SortedDictionary<string, string>();
+				string[] lines = System.IO.File.ReadAllLines(Data.Text.MANGASDATA_FILE);
 				foreach (string line in lines) {
 					var data = line.Split(splitChar);
 					var manga = data[0];
 					var content = data[1];
 
-					Program.mangasData.Add(manga, content);
+					Data.mangasData.Add(manga, content);
 				}
 			}
 			catch (Exception e) {
@@ -1172,40 +932,31 @@ namespace DiscordBot
 
 		public static void setupPpSong()
 		{
-			string[] lines = System.IO.File.ReadAllLines(PP_FILE_NAME);
+			string[] lines = System.IO.File.ReadAllLines(Data.Text.PP_FILE);
 			foreach (string line in lines) {
-				Program.pp_songs.Add(line);
+				Data.pp_songs.Add(line);
 			}
 		}
 
 		public static void setupOtherActionsList()
 		{
-			foreach (var action in Program.actions.getActions) {
+			foreach (var action in Data.actions.getActions) {
 				if (Actions.getActionType(action.Item1) == "Autres") {
-					Program.autres.Add(action.Item1.Split(otherSplitChar)[0]);
+					Data.autres.Add(action.Item1.Split(otherSplitChar)[0]);
 				}
-			}
-		}
-
-		public static void setupPopActions()
-		{
-			string[] lines = System.IO.File.ReadAllLines(POP_ACTIONS_FILE);
-			foreach (string line in lines) {
-				var values = line.Split(splitChar);
-				Program.actions_used.Add(values[0], Int32.Parse(values[1]));
 			}
 		}
 
 		//Getters
 		public static string getToken()
 		{
-			string[] lines = System.IO.File.ReadAllLines(TOKEN_FILE_NAME);
+			string[] lines = System.IO.File.ReadAllLines(Data.Text.TOKEN_FILE);
 			return lines[0];
 		}
 
 		public static string getApiKey()
 		{
-			string[] lines = System.IO.File.ReadAllLines(TOKEN_FILE_NAME);
+			string[] lines = System.IO.File.ReadAllLines(Data.Text.TOKEN_FILE);
 			return lines[1];
 		}
 	}

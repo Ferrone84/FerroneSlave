@@ -26,7 +26,6 @@ namespace DiscordBot
 			add("!clean", "Clean l'espace de message.", clean);
 			add("!mangas", "Affiche la liste des mangas traités.", mangas);
 			add("!scans", "Affiche le dernier scan pour chaque mangas traités.", scans);
-			add("!lastchapter", "Affiche le dernier scan pour le manga en paramètre. (!lastchapter one-piece)", lastChapter);
 			add("!addmanga", "Ajoute le manga en paramètre à la liste. (!addmanga one-piece)", addManga);
 			add("!subto", "Permet de s'abonner au manga précisé. (!subto one-piece)", subTo);
 			add("!unsubto", "Permet de se désabonner du manga précisé. (!unsubto one-piece)", unsubTo);
@@ -34,11 +33,11 @@ namespace DiscordBot
 			add("!catch", "Permet de savoir le % de chance de capture du pokemon ou d'obtenir son catchRate.", pokemonCatch);
 			add("!rtier", "Permet de savoir la rareté d'un pokemon (rarityTier).", pokemonRarityTier);
 			add("!pokemon", "Permet d'afficher les infos d'un pokemon.", allPokemonInfo);
-            add("!popactions", "Permet d'afficher les actions les plus populaires.", popActions);
-            add("!quote", "Permet de citer le message de quelqu'un.", quote);
-            add("!banned", "Affiche la liste des gens bannis.", banned);
+			add("!popactions", "Permet d'afficher les actions les plus populaires.", popActions);
+			add("!quote", "Permet de citer le message de quelqu'un.", quote);
+			add("!banned", "Affiche la liste des gens bannis.", banned);
 
-            add("!!display", "Affiche la bdd.", displayBdd);
+			add("!!display", "Affiche la bdd.", displayBdd);
 			add("!!ban", "Ajoute un utilisateur à la liste des utilisateurs bannis.", banUser);
 			add("!!unban", "Retire un utilisateur de la liste des utilisateurs bannis.", unbanUser);
 			add("!!adduser", "Ajoute un utilisateur à la bdd.", addUser);
@@ -68,9 +67,9 @@ namespace DiscordBot
 			add("hanauta sancho" + Utils.otherSplitChar + @"hanauta|sancho|yahazu\s*giri", "Le génie de Brook.", sancho);
 			add("detroit smash" + Utils.otherSplitChar + @"d+e+t+r+o+i+t+|s+m+a+s+h+", "Cqfd.", detroitSmash);
 			add("repent", "YOU WILL HAVE TO REPENT TO THIS MAN.", repent);
-            add("latata", "Do I really need to say something?", latata);
-            add("DEJA VU" + Utils.otherSplitChar + @"d[ée]+j[aà]+\s*vu+", "😏", dejavu);
-        }
+			add("latata", "Do I really need to say something?", latata);
+			add("DEJA VU" + Utils.otherSplitChar + @"d[ée]+j[aà]+\s*vu+", "😏", dejavu);
+		}
 
 		private void add(string command, string description, Func<SocketMessage, string> method)
 		{
@@ -115,7 +114,7 @@ namespace DiscordBot
 
 		private string ping(SocketMessage message)
 		{
-			return "Pong! Mon ping est de : " + Program._client.Latency.ToString() + "ms.";
+			return "Pong! Mon ping est de : " + Data._client.Latency.ToString() + "ms.";
 		}
 
 		private string date(SocketMessage message)
@@ -176,11 +175,6 @@ namespace DiscordBot
 			}
 		}
 
-		private string lastChapter(SocketMessage message)
-		{
-			return Utils.lastChapter(message.Content.ToLower());
-		}
-
 		private string addManga(SocketMessage message)
 		{
 			return Utils.addManga(message.Content.ToLower());
@@ -191,7 +185,7 @@ namespace DiscordBot
 			string msg = String.Empty;
 			string message_lower = message.Content.ToLower();
 			if (message_lower.Length > 6)
-				msg = Program.database.subTo(message.Author.Id.ToString(), message_lower.Split(' ')[1]);
+				msg = Data.database.subTo(message.Author.Id.ToString(), message_lower.Split(' ')[1]);
 			else
 				msg = "Il faut mettre un titre de manga. Ex : !subto one-piece";
 
@@ -203,7 +197,7 @@ namespace DiscordBot
 			string msg = String.Empty;
 			string message_lower = message.Content.ToLower();
 			if (message_lower.Length > 8)
-				msg = Program.database.unsubTo(message.Author.Id.ToString(), message_lower.Split(' ')[1]);
+				msg = Data.database.unsubTo(message.Author.Id.ToString(), message_lower.Split(' ')[1]);
 			else
 				msg = "Il faut mettre un titre de manga. Ex : !unsubto one-piece";
 
@@ -215,9 +209,9 @@ namespace DiscordBot
 			string msg = String.Empty;
 			string message_lower = message.Content.ToLower();
 			if (message_lower.Length > 8)
-				msg = Program.database.subList(message.Author.Id.ToString(), message_lower.Split(' ')[1]);
+				msg = Data.database.subList(message.Author.Id.ToString(), message_lower.Split(' ')[1]);
 			else
-				msg = Program.database.subList(message.Author.Id.ToString());
+				msg = Data.database.subList(message.Author.Id.ToString());
 
 			return msg;
 		}
@@ -281,43 +275,43 @@ namespace DiscordBot
 			}
 
 			return msg;
-        }
+		}
 
-        private string popActions(SocketMessage message)
-        {
-            return Utils.getPopActions();
-        }
-
-        private string quote(SocketMessage message)
-        {
-            string msg = String.Empty;
-            string message_lower = message.Content.ToLower();
-
-            var args = message_lower.Split(' ');
-            if (args.Length != 2) {
-                return "This command can be use like this : !quote message_id (je parle du vrai ID, écrivez pas message_id bande de fdp).";
-            }
-            
-            if (!(message.Channel is SocketGuildChannel)) {
-                msg = "Channel MUST be from a guild.";
-            }
-
-            return msg;
-        }
-
-        private string banned(SocketMessage message)
-        {
-            return Utils.getBannedUsersList();
-        }
-
-
-        ///////////////////////////////////////////////////////////////////
-        //							  Partie Admin
-        ///////////////////////////////////////////////////////////////////
-
-        private string displayBdd(SocketMessage message)
+		private string popActions(SocketMessage message)
 		{
-			return Program.database.display();
+			return Utils.getPopActions();
+		}
+
+		private string quote(SocketMessage message)
+		{
+			string msg = String.Empty;
+			string message_lower = message.Content.ToLower();
+
+			var args = message_lower.Split(' ');
+			if (args.Length != 2) {
+				return "This command can be use like this : !quote message_id (je parle du vrai ID, écrivez pas message_id bande de fdp).";
+			}
+			
+			if (!(message.Channel is SocketGuildChannel)) {
+				msg = "Channel MUST be from a guild.";
+			}
+
+			return msg;
+		}
+
+		private string banned(SocketMessage message)
+		{
+			return Utils.getBannedUsersList();
+		}
+
+
+		///////////////////////////////////////////////////////////////////
+		//							  Partie Admin
+		///////////////////////////////////////////////////////////////////
+
+		private string displayBdd(SocketMessage message)
+		{
+			return Data.database.display();
 		}
 
 		private string banUser(SocketMessage message)
@@ -355,7 +349,7 @@ namespace DiscordBot
 			}
 			try {
 				var args = message.Content.Split(' ');
-				Program.database.addUser(args[1], args[2], args[3]);
+				Data.database.addUser(args[1], args[2], args[3]);
 			}
 			catch (Exception e) {
 				Utils.displayException(e, "!!adduser");
@@ -368,7 +362,7 @@ namespace DiscordBot
 		private string saveBdd(SocketMessage message)
 		{
 			try {
-				File.Copy(Utils.DB_FILE_NAME, Utils.DB_FILE_SAVE, true);
+				File.Copy(Data.Binary.DB_FILE, Data.Binary.DB_FILE_SAVE, true);
 			}
 			catch (Exception e) {
 				Utils.displayException(e, "saveBdd");
@@ -381,7 +375,7 @@ namespace DiscordBot
 		private string restBdd(SocketMessage message)
 		{
 			try {
-				File.Copy(Utils.DB_FILE_SAVE, Utils.DB_FILE_NAME, true);
+				File.Copy(Data.Binary.DB_FILE_SAVE, Data.Binary.DB_FILE, true);
 			}
 			catch (Exception e) {
 				Utils.displayException(e, "restBdd");
@@ -462,7 +456,7 @@ namespace DiscordBot
 			string msg = "LOS ? ";
 			string message_lower = message.Content.ToLower();
 
-			foreach (var user in Program.guild.Users) {
+			foreach (var user in Data.guild.Users) {
 				foreach (var role in user.Roles) {
 					if (role.Id == 471428502621650947 && user.Id != message.Author.Id) {
 						msg += "<@" + user.Id + "> ";
@@ -558,16 +552,16 @@ namespace DiscordBot
 		private string repent(SocketMessage message)
 		{
 			return "https://cdn.discordapp.com/attachments/309407896070782976/515615289988087808/repent.mp4";
-        }
+		}
 
-        private string latata(SocketMessage message)
-        {
-            return "https://www.youtube.com/watch?v=9mQk7Evt6Vs";
-        }
+		private string latata(SocketMessage message)
+		{
+			return "https://www.youtube.com/watch?v=9mQk7Evt6Vs";
+		}
 
-        private string dejavu(SocketMessage message)
-        {
-            return "https://youtu.be/dv13gl0a-FA?t=60";
-        }
-    }
+		private string dejavu(SocketMessage message)
+		{
+			return "https://youtu.be/dv13gl0a-FA?t=60";
+		}
+	}
 }
