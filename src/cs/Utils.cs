@@ -794,15 +794,12 @@ namespace DiscordBot
                 if (!(channel is SocketTextChannel)) {
                     continue;
                 }
-                
-                var messages = await ((SocketTextChannel)channel).GetMessagesAsync().FlattenAsync();
-
-                foreach (var message in messages) {
-                    if (message.Id == messageId) {
-                        resultMessage = message;
-                    }
-                }
-            }
+				
+				var message = await ((SocketTextChannel)channel).GetMessageAsync(messageId);
+				if (message != null) {
+					return message;
+				}
+			}
 
             return resultMessage;
         }
