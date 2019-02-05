@@ -18,8 +18,7 @@ namespace DiscordBot
 		{
 			Utils.runPython(Data.Python.INIT_TABLES_FILE);
 		}
-
-		//à terme ça lancera un script python qui parsera le fichier data.txt
+		
 		public void loadMangas()
 		{
 			foreach (KeyValuePair<string, string> kvp in Data.mangasData) {

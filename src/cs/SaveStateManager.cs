@@ -23,8 +23,9 @@ namespace DiscordBot
 					return (T)binary_serializer.Deserialize(stream);
 				}
 			}
-			catch (Exception e) {
-				Utils.displayException(e, "SaveStateManager::Load<T>(string filename)");
+			catch (Exception) {
+				("Le fichier "+filename+" n'existe pas et a été créé.").print();
+				//Utils.displayException(e, "SaveStateManager::Load<T>(string filename)");
 				return default(T);
 			}
 		}

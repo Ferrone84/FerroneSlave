@@ -21,14 +21,11 @@ namespace DiscordBot
 {
 	public class Utils
 	{
-		public static int timeout = 15000;
-        public static char splitChar = '|';
-        public static char otherSplitChar = '/';
-        public static string flip = "(╯°□°）╯︵ ┻━┻";
-        public static string unflip = "┬─┬﻿ ノ( ゜-゜ノ)";
-
-        public static string NSFW_EMOJI = "🔞";
-
+		public const int timeout = 15000;
+        public const char splitChar = '|';
+        public const char otherSplitChar = '/';
+        public const string flip = "(╯°□°）╯︵ ┻━┻";
+        public const string unflip = "┬─┬﻿ ノ( ゜-゜ノ)";
 
 
 		public static void init()
