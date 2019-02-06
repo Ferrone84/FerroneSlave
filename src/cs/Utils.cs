@@ -24,8 +24,6 @@ namespace DiscordBot
 		public const int timeout = 15000;
         public const char splitChar = '|';
         public const char otherSplitChar = '/';
-        public const string flip = "(╯°□°）╯︵ ┻━┻";
-        public const string unflip = "┬─┬﻿ ノ( ゜-゜ノ)";
 
 
 		public static void init()

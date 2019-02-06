@@ -20,9 +20,9 @@ namespace DiscordBot
 			add("!ping", "Affiche le ping du bot.", ping);
 			add("!date", "Affiche la date.", date);
 			add("!flip", "Lance une table.", flip);
-			add(Utils.unflip, "", flip);
+			add(EmoteManager.TextEmoji.unflip, "", flip);
 			add("!unflip", "Replace une table.", unflip);
-			add(Utils.flip, "", unflip);
+			add(EmoteManager.TextEmoji.flip, "", unflip);
 			add("!clean", "Clean l'espace de message.", clean);
 			add("!mangas", "Affiche la liste des mangas traités.", mangas);
 			add("!scans", "Affiche le dernier scan pour chaque mangas traités.", scans);
@@ -44,6 +44,7 @@ namespace DiscordBot
 			add("!!savebdd", "Sauvegarde la bdd.", saveBdd);
 			add("!!restbdd", "Restaure la bdd.", restBdd);
 			add("!!delete", "Supprime le nombre de messages spécifiés en partant de la fin.", delete);
+			add("!!say", "Fait dire au bot le contenu du fichier say.", say);
 
 			add("$fs", "Formate la phrase qui suit avec de jolies lettres.", fs);
 			add("$lenny", "Affiche le meme 'lenny'.", lenny);
@@ -68,7 +69,8 @@ namespace DiscordBot
 			add("detroit smash" + Utils.otherSplitChar + @"d+e+t+r+o+i+t+|s+m+a+s+h+", "Cqfd.", detroitSmash);
 			add("repent", "YOU WILL HAVE TO REPENT TO THIS MAN.", repent);
 			add("latata", "Do I really need to say something?", latata);
-			add("DEJA VU" + Utils.otherSplitChar + @"d[ée]+j[aà]+\s*vu+", "😏", dejavu);
+			add("DEJA VU" + Utils.otherSplitChar + @"d[ée]+j[aà]+\s*vu+", EmoteManager.TextEmoji.smirk, dejavu);
+			add("cul" + Utils.otherSplitChar + @"cul|ass", EmoteManager.TextEmoji.peach, peach);
 		}
 
 		private void add(string command, string description, Func<SocketMessage, string> method)
@@ -142,12 +144,12 @@ namespace DiscordBot
 
 		private string flip(SocketMessage message)
 		{
-			return Utils.flip;
+			return EmoteManager.TextEmoji.flip;
 		}
 
 		private string unflip(SocketMessage message)
 		{
-			return Utils.unflip;
+			return EmoteManager.TextEmoji.unflip;
 		}
 
 		private string clean(SocketMessage message)
@@ -403,6 +405,11 @@ namespace DiscordBot
 			return String.Empty;
 		}
 
+		private string say(SocketMessage message)
+		{
+			return Utils.splitBodies(File.ReadAllText(Data.Text.SAY_FILE));
+		}
+
 
 		///////////////////////////////////////////////////////////////////
 		//							Les deletes
@@ -562,6 +569,12 @@ namespace DiscordBot
 		private string dejavu(SocketMessage message)
 		{
 			return "https://youtu.be/dv13gl0a-FA?t=60";
+		}
+
+		private string peach(SocketMessage message)
+		{
+			((SocketUserMessage)message).AddReactionAsync(EmoteManager.Peach);
+			return String.Empty;
 		}
 	}
 }

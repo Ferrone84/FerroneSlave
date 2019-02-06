@@ -40,6 +40,7 @@ namespace DiscordBot
 		public struct Text
 		{
 			public static string PP_FILE = $@"{TEXT_DIR}pp.txt";
+			public static string SAY_FILE = $@"{TEXT_DIR}say.txt";
 			public static string LOGS_FILE = $@"{TEXT_DIR}logs.txt";
 			public static string TOKEN_FILE = $@"{TEXT_DIR}token.txt";
 			public static string TRAJETS_FILE = $@"{TEXT_DIR}trajets.txt";
