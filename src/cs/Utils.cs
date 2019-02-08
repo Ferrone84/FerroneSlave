@@ -315,13 +315,10 @@ namespace DiscordBot
                         }
 
                         var pNotif = document.Select("p[id=notif]");
-                        bool isVF = true;
-                        if (pNotif.Text != String.Empty) {
-                            isVF = false;
-                        }
-
+                        bool isVF = (pNotif.Text == String.Empty);
                         bool alreadyInDataList = false;
 						int tmp_counter = 0, data_counter = 2000;
+
 						foreach (string dataLine in text_data.Split('\n')) {
 							if (chapter.Equals(dataLine)) {
 								data_counter = tmp_counter;
@@ -330,25 +327,19 @@ namespace DiscordBot
 							tmp_counter++;
 						}
 
+						bool newChapter = false;
 						if (alreadyInDataList) {
 							if (crawler_counter < data_counter) {
 								("rentre (" + crawler_counter.ToString() + " < " + data_counter.ToString() + " )").debug();
-								string scanValue = title + " => <" + link + ">";
-								string subs = String.Empty;
-								var users = Data.database.getSubs(mangaName);
-								string msg = "Nouveau scan trouvé pour " + mangaName + " : \n\t" + scanValue;
-
-								foreach (var user in users) {
-									subs += "<@" + user + "> ";
-								}
-                                if (isVF) {
-                                    await sendMessageTo(Data.channels["mangas"], msg + " " + subs);
-                                }
-								processedMangas.Add(mangaName);
+								newChapter = true;
 							}
 						}
 						else {
 							"rentre (notInList)".debug();
+							newChapter = true;
+						}
+
+						if (newChapter) {
 							string scanValue = title + " => <" + link + ">";
 							string subs = String.Empty;
 							var users = Data.database.getSubs(mangaName);
@@ -357,14 +348,15 @@ namespace DiscordBot
 							foreach (var user in users) {
 								subs += "<@" + user + "> ";
 							}
-                            if (isVF) {
-                                await sendMessageTo(Data.channels["mangas"], msg + " " + subs);
-                            }
-                            processedMangas.Add(mangaName);
+							if (isVF) {
+								await sendMessageTo(Data.channels["debugs"], msg + " " + subs);
+							}
 						}
+
+						processedMangas.Add(mangaName);
+						data += chapter + "\n";
 					}
 
-					data += chapter + "\n";
 					crawler_counter++;
 				}
 
@@ -950,112 +942,6 @@ namespace DiscordBot
 		{
 			string[] lines = System.IO.File.ReadAllLines(Data.Text.TOKEN_FILE);
 			return lines[1];
-		}
-	}
-
-	static class Extensions
-	{
-		public static void debug<T>(this T t)
-		{
-			Console.WriteLine("/" + t + "/");
-		}
-
-		public static void debug<T>(this T[] list)
-		{
-			int count = 0;
-			Console.WriteLine("Liste : ");
-
-			foreach (var line in list) {
-				Console.WriteLine("[" + count + "] : /" + line + "/");
-				count++;
-			}
-			Console.WriteLine("");
-		}
-
-		public static void debug<T>(this List<T> list)
-		{
-			int count = 0;
-			Console.WriteLine("Liste : ");
-
-			foreach (var line in list) {
-				Console.WriteLine("[" + count + "] : /" + line + "/");
-				count++;
-			}
-			Console.WriteLine("");
-		}
-
-		public static void debug<T, G>(this Dictionary<T, G> dict)
-		{
-			if (dict.Count == 0) {
-				Console.WriteLine("Empty dictionnary.");
-				return;
-			}
-			int count = 0;
-			Console.WriteLine("Dictionnary : ");
-
-			foreach (var line in dict) {
-				Console.WriteLine("[" + count + "] : /" + line.Key + "/ : /" + line.Value + "/");
-				count++;
-			}
-			Console.WriteLine("");
-		}
-
-		public static void debug<T, G>(this SortedDictionary<T, G> dict)
-		{
-			int count = 0;
-			Console.WriteLine("Dictionnary : ");
-
-			foreach (var line in dict) {
-				Console.WriteLine("[" + count + "] : /" + line.Key + "/ : /" + line.Value + "/");
-				count++;
-			}
-			Console.WriteLine("");
-		}
-
-		public static void println<T>(this T t)
-		{
-			Console.WriteLine(t);
-		}
-
-		public static void print<T>(this T t)
-		{
-			Console.Write(t);
-		}
-
-		public static void print<T>(this T[] list)
-		{
-			int count = 0;
-			Console.WriteLine("Liste : ");
-
-			foreach (var line in list) {
-				Console.WriteLine("[" + count + "] : " + line);
-				count++;
-			}
-			Console.WriteLine("");
-		}
-
-		public static void print<T>(this List<T> list)
-		{
-			int count = 0;
-			Console.WriteLine("Liste : ");
-
-			foreach (var line in list) {
-				Console.WriteLine("[" + count + "] : " + line);
-				count++;
-			}
-			Console.WriteLine("");
-		}
-
-		public static void print<T, G>(this IDictionary<T, G> dict)
-		{
-			int count = 0;
-			Console.WriteLine("Dictionnary : ");
-
-			foreach (var line in dict) {
-				Console.WriteLine("[" + count + "] : " + line.Key + " : " + line.Value);
-				count++;
-			}
-			Console.WriteLine("");
 		}
 	}
 }

@@ -210,7 +210,7 @@ namespace DiscordBot
 			if (message.Channel.Id == Data.channels["musique"]) {
 				string msg = String.Empty;
 
-				if ((msg = Utils.getYtLink(message.Content)) != String.Empty) {
+				if ((msg = Utils.getYtLink(message.Content)) != String.Empty && !message.Author.IsBot) {
 					try {
 						Data.database.addMusic(msg);
 						await ((SocketUserMessage)message).AddReactionAsync(EmoteManager.CheckMark);
@@ -261,11 +261,14 @@ namespace DiscordBot
 				}
 
 				foreach (var action in Data.actions.getActions) {
-					if (message_lower.StartsWith(action.Item1)) {
+					string[] other = action.Item1.Split(Utils.otherSplitChar);
+					bool actionIsOther = Data.autres.Contains(other[0]);
+
+					if (message_lower.StartsWith(action.Item1) && !actionIsOther) {
 						string msg = action.Item3.Invoke(message);
 						Utils.actionUsed(action.Item1);
 
-						if (message_lower.StartsWith("$")) { Utils.DeleteMessage(message); }
+						if (Actions.getActionType(action.Item1) == "Les Deletes") { Utils.DeleteMessage(message); }
 
 						if (msg.Contains(Utils.splitChar.ToString())) {
 							foreach (string ms in msg.Split(Utils.splitChar)) {
@@ -278,10 +281,10 @@ namespace DiscordBot
 
 						break;
 					}
-					else if (Data.autres.Contains(action.Item1.Split(Utils.otherSplitChar)[0])) {
-						if (message_lower.Contains(action.Item1.Split(Utils.otherSplitChar)[0])) {
+					else if (actionIsOther) {
+						if (message_lower.Contains(other[0])) {
 							string msg = action.Item3.Invoke(message);
-							Utils.actionUsed(action.Item1.Split(Utils.otherSplitChar)[0]);
+							Utils.actionUsed(other[0]);
 
 							if (msg.Contains(Utils.splitChar.ToString())) {
 								foreach (string ms in msg.Split(Utils.splitChar)) {
@@ -292,11 +295,12 @@ namespace DiscordBot
 								await message.Channel.SendMessageAsync(msg);
 							}
 						}
-						else if (action.Item1.Split(Utils.otherSplitChar).Length != 1) {
-							Regex regex = new Regex(action.Item1.Split(Utils.otherSplitChar)[1]);
+						else if (other.Length != 1) {
+							Regex regex = new Regex(other[1]);
+
 							if (regex.Match(message_lower).Success) {
 								string msg = action.Item3.Invoke(message);
-								Utils.actionUsed(action.Item1.Split(Utils.otherSplitChar)[0]);
+								Utils.actionUsed(other[0]);
 
 								if (msg.Contains(Utils.splitChar.ToString())) {
 									foreach (string ms in msg.Split(Utils.splitChar)) {
