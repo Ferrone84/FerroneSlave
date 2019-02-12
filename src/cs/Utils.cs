@@ -31,12 +31,21 @@ namespace DiscordBot
 			if (isLinux) {
 				Data.Python.PYTHON_EXE = @"/usr/bin/python3";
 			}
+			if (isTestBot) {
+				Data.channels["debugs"] = Data.channels["tests"];
+			}
 		}
 
 		public static bool isLinux {
 			get {
-				int p = (int) Environment.OSVersion.Platform;
+				int p = (int)Environment.OSVersion.Platform;
 				return (p == 4) || (p == 6) || (p == 128);
+			}
+		}
+
+		public static bool isTestBot {
+			get {
+				return File.ReadAllText(Data.Text.ISBOT_FILE) == "1";
 			}
 		}
 
@@ -349,7 +358,7 @@ namespace DiscordBot
 								subs += "<@" + user + "> ";
 							}
 							if (isVF) {
-								await sendMessageTo(Data.channels["debugs"], msg + " " + subs);
+								await sendMessageTo(Data.channels["mangas"], msg + " " + subs);
 							}
 						}
 

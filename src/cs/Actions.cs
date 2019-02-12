@@ -287,12 +287,6 @@ namespace DiscordBot
 		private string quote(SocketMessage message)
 		{
 			string msg = String.Empty;
-			string message_lower = message.Content.ToLower();
-
-			var args = message_lower.Split(' ');
-			if (args.Length != 2) {
-				return "This command can be use like this : !quote message_id (je parle du vrai ID, écrivez pas message_id bande de fdp).";
-			}
 			
 			if (!(message.Channel is SocketGuildChannel)) {
 				msg = "Channel MUST be from a guild.";

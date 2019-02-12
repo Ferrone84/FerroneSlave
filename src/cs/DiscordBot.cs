@@ -7,6 +7,7 @@ using Discord;
 using Discord.WebSocket;
 using System.Threading;
 using System.Text.RegularExpressions;
+using Discord.Net;
 
 namespace DiscordBot
 {
@@ -84,9 +85,11 @@ namespace DiscordBot
 			Utils.setupOtherActionsList();
 			Data.guild = Data._client.GetGuild(309407896070782976);
 
-			//Thread qui regarde les nouveaux scans
-			Thread mangas_thread = new Thread(Utils.mangasCrawlerOnLireScanV2);
-			mangas_thread.Start();
+			if (!Utils.isTestBot) {
+				//Thread qui regarde les nouveaux scans
+				Thread mangas_thread = new Thread(Utils.mangasCrawlerOnLireScanV2);
+				mangas_thread.Start();
+			}
 
 			Thread people_spam_thread = new Thread(Utils.emptyBannedPeopleStack);
 			people_spam_thread.Start();
@@ -340,25 +343,39 @@ namespace DiscordBot
 				}
 				else if (message_lower.StartsWith("!quote")) {
 					var args = message_lower.Split(' ');
+					string error_message = "This command can be use like this : !quote message_id OR !quote message_id reply.";
 
-					if (args.Length == 2) {
+					if (args.Length >= 2) {
 						try {
 							ulong messageId = UInt64.Parse(args[1]);
 
 							if (message.Channel is SocketGuildChannel) {
-								IMessage msg = await Utils.getMessageFromId(messageId, ((SocketGuildChannel)message.Channel).Guild);
+								IMessage msg = await Utils.getMessageFromId(messageId, (message.Channel as SocketGuildChannel).Guild);
 								if (msg == null) {
 									throw new ArgumentException("Le message '" + messageId + "' n'existe pas (ou n'est plus dans le cache du bot).");
 								}
 								await message.Channel.SendMessageAsync("", false, Utils.quote(msg, message.Author));
+								if (args.Length >= 3) {
+									string quote_args = args[0] + ' ' + args[1] + ' ';
+									string reply = message_lower.Split(quote_args)[1];
+
+									await message.Channel.SendMessageAsync("**" + message.Author.Username + " replied : **" + reply);
+								}
 							}
 						}
 						catch (ArgumentException e) {
 							await message.Channel.SendMessageAsync(e.Message);
 						}
-						catch (Exception) {
-							await message.Channel.SendMessageAsync("This command can be use like this : !quote message_id (je parle du vrai ID, écrivez pas message_id bande de fdp).");
+						catch (HttpException) {
+							await message.Channel.SendMessageAsync("Le bot n'as pas accès à ce channel.");
 						}
+						catch (Exception e) {
+							await message.Channel.SendMessageAsync(error_message);
+							Utils.displayException(e);
+						}
+					}
+					else {
+						await message.Channel.SendMessageAsync(error_message);
 					}
 				}
 			}

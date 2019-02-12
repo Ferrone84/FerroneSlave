@@ -43,6 +43,7 @@ namespace DiscordBot
 			public static string SAY_FILE = $@"{TEXT_DIR}say.txt";
 			public static string LOGS_FILE = $@"{TEXT_DIR}logs.txt";
 			public static string TOKEN_FILE = $@"{TEXT_DIR}token.txt";
+			public static string ISBOT_FILE = $@"{TEXT_DIR}is_test.txt";
 			public static string TRAJETS_FILE = $@"{TEXT_DIR}trajets.txt";
 			public static string POKEMONS_FILE = $@"{TEXT_DIR}pokemons.p";
 			public static string ERRORSLOG_FILE = $@"{TEXT_DIR}errors.txt";
@@ -76,6 +77,7 @@ namespace DiscordBot
 			{ "musique",        472354528948387857 },
 			{ "debug",          353262627880697868 },
 			{ "debugs",         456443420378923010 },
+			{ "tests",          543925483650416650 },
 			{ "zone51",         346760327540506643 },
 			{ "warframe",       483426339009986560 },
 			{ "nsfw",           389537278671978497 },
