@@ -1,8 +1,7 @@
 using System;
 using System.IO;
 
-
-namespace DiscordBot
+namespace DiscordBot.Utilities
 {
 	public class SaveStateManager
 	{
@@ -24,8 +23,7 @@ namespace DiscordBot
 				}
 			}
 			catch (Exception) {
-				("Le fichier "+filename+" n'existe pas et a été créé.").print();
-				//Utils.displayException(e, "SaveStateManager::Load<T>(string filename)");
+				("Le fichier "+filename+" n'existe pas. Valeur par défaut renvoyé dans l'instance.").Println();
 				return default(T);
 			}
 		}

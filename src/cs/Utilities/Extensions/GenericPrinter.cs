@@ -8,7 +8,7 @@ namespace DiscordBot
 	{
 		private static string Inspect(this object o) { return o.ToString(); }
 		private static string Inspect(this ValueType o) { return o.ToString(); }
-		private static string Inspect(this String o) { return o.ToString(); }
+		private static string Inspect(this string o) { return o.ToString(); }
 		private static string Inspect(this Type t)
 		{
 			var sb = new StringBuilder();
@@ -64,19 +64,37 @@ namespace DiscordBot
 			return sb.ToString();
 		}
 
-		public static void print(this object o)
+		public static string GetStr(this object o)
 		{
+			if (IsNull(o)) { return "NULL"; }
+			return Inspect((dynamic)o);
+		}
+
+		public static void Print(this object o)
+		{
+			if (IsNull(o)) { return; }
 			Console.Write(Inspect((dynamic)o));
 		}
 
-		public static void println(this object o)
+		public static void Println(this object o)
 		{
+			if (IsNull(o)) { return; }
 			Console.WriteLine(Inspect((dynamic)o));
 		}
 
-		public static void debug(this object o, string before = "/", string after = "/")
+		public static void Debug(this object o, string before = "/", string after = "/")
 		{
+			if (IsNull(o)) { return; }
 			Console.WriteLine(before + Inspect((dynamic)o) + after);
+		}
+
+		private static bool IsNull(object o)
+		{
+			if (o == null) {
+				Console.WriteLine("NULL");
+				return true;
+			}
+			return false;
 		}
 	}
 }
