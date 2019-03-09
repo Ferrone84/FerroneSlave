@@ -352,7 +352,7 @@ namespace DiscordBot
 							if (message.Channel is SocketGuildChannel) {
 								IMessage msg = await Utils.getMessageFromId(messageId, (message.Channel as SocketGuildChannel).Guild);
 								if (msg == null) {
-									throw new ArgumentException("Le message '" + messageId + "' n'existe pas (ou n'est plus dans le cache du bot).");
+									throw new ArgumentException("Le message '" + messageId + "' n'existe pas ou le bot n'y a pas accès.");
 								}
 								await message.Channel.SendMessageAsync("", false, Utils.quote(msg, message.Author));
 								if (args.Length >= 3) {
@@ -366,8 +366,10 @@ namespace DiscordBot
 						catch (ArgumentException e) {
 							await message.Channel.SendMessageAsync(e.Message);
 						}
-						catch (HttpException) {
-							await message.Channel.SendMessageAsync("Le bot n'as pas accès à ce channel.");
+						catch (HttpException e) {
+							Utils.displayException(e, "!quote");
+							await message.Channel.SendMessageAsync("Le bot n'as pas accès au channel du message.");
+							await Utils.sendMessageTo(Data.channels["debugs"], e.Message);
 						}
 						catch (Exception e) {
 							await message.Channel.SendMessageAsync(error_message);

@@ -314,17 +314,6 @@ namespace DiscordBot
 					string chapter = title + splitChar + link + splitChar + description;
 
 					if (mangaExists && !processedMangas.Contains(mangaName)) {
-                        Supremes.Nodes.Document document = null;
-                        try {
-                            document = Dcsoup.Parse(new Uri(link), timeout);
-                        }
-                        catch (Exception) {
-                            ("Timeout on : <" + link + ">").debug();
-                            throw new TimeoutException("Timeout on : <" + link + ">");
-                        }
-
-                        var pNotif = document.Select("p[id=notif]");
-                        bool isVF = (pNotif.Text == String.Empty);
                         bool alreadyInDataList = false;
 						int tmp_counter = 0, data_counter = 2000;
 
@@ -349,15 +338,29 @@ namespace DiscordBot
 						}
 
 						if (newChapter) {
-							string scanValue = title + " => <" + link + ">";
-							string subs = String.Empty;
-							var users = Data.database.getSubs(mangaName);
-							string msg = "Nouveau scan trouvé pour " + mangaName + " : \n\t" + scanValue;
+							
+	                        Supremes.Nodes.Document document = null;
+	                        try {
+	                            document = Dcsoup.Parse(new Uri(link), timeout);
+	                        }
+	                        catch (Exception) {
+	                            ("Timeout on : <" + link + ">").debug();
+	                            throw new TimeoutException("Timeout on : <" + link + ">");
+	                        }
 
-							foreach (var user in users) {
-								subs += "<@" + user + "> ";
-							}
+	                        var pNotif = document.Select("p[id=notif]");
+	                        bool isVF = (pNotif.Text == String.Empty);
+							
+							("[manga] : "+mangaName+" [VF] : "+isVF).debug();
 							if (isVF) {
+								string scanValue = title + " => <" + link + ">";
+								string subs = String.Empty;
+								var users = Data.database.getSubs(mangaName);
+								string msg = "Nouveau scan trouvé pour " + mangaName + " : \n\t" + scanValue;
+
+								foreach (var user in users) {
+									subs += "<@" + user + "> ";
+								}
 								await sendMessageTo(Data.channels["mangas"], msg + " " + subs);
 							}
 						}
