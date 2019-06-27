@@ -8,7 +8,7 @@ namespace DiscordBot.Actions.OtherActions
 
 		public AOtherAction()
 		{
-			Regex = "(?=a)b";
+			Regex = @"(?=a)b";
 			Type = ActionType.Other;
 			Prefix = prefixs[Type];
 			Accessibility = AccessibilityType.Usable;

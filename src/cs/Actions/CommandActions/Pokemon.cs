@@ -18,7 +18,7 @@ namespace DiscordBot.Actions.CommandActions
 			var words = message.Content.ToLower().Split(' ');
 
 			if (words.Length != 2) {
-				await message.Channel.SendMessageAsync("This command can be use like this : " + Name + " Charizard");
+				await message.Channel.SendMessageAsync("This command can be used like this : " + Name + " Charizard");
 			}
 			else {
 				var embed = GetAllPokemonInfo(words[1]);

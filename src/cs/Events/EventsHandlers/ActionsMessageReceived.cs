@@ -40,7 +40,7 @@ namespace DiscordBot.Events.EventsHandlers
 							action.Use(message);
 						}
 						else {
-							await message.Channel.SendMessageAsync("Il faut être admin pour utiliser cette commande.");
+							await message.Channel.SendMessageAsync("Il faut Ãªtre admin pour utiliser cette commande.");
 						}
 						break;
 					case Actions.Action.AccessibilityType.Invisible:

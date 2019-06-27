@@ -11,14 +11,18 @@ namespace DiscordBot.Utilities
 		{
 			public const string Nsfw = @"🔞";
 			public const string CheckMark = @"✅";
-			public const string CrossMark = @"❎";
+			public const string CrossMark = @"❌";
 			public const string Skull = @"💀";
 			public const string Peach = @"🍑";
 			public const string Smirk = @"😏";
 			public const string Flip = @"(╯°□°）╯︵ ┻━┻";
 			public const string Unflip = @"┬─┬﻿ ノ( ゜-゜ノ)";
 			public const string Lenny = @"( ͡° ͜ʖ ͡°)";
-			public const string InvalidEmote = @"❌";
+			public const string InvalidEmote = @"️🚫";
+			public const string Stop = @"️⛔️";
+			public const string TinyPlus = @"️➕";
+			public const string Loop = @"️➿";
+			public const string GameDie = @"️🎲";
 		}
 
 		public static IEmote Nsfw { get; } = new Emoji(TextEmoji.Nsfw);
@@ -28,6 +32,10 @@ namespace DiscordBot.Utilities
 		public static IEmote Peach { get; } = new Emoji(TextEmoji.Peach);
 		public static IEmote Smirk { get; } = new Emoji(TextEmoji.Smirk);
 		public static IEmote InvalidEmote { get; } = new Emoji(TextEmoji.InvalidEmote);
+		public static IEmote Stop { get; } = new Emoji(TextEmoji.Stop);
+		public static IEmote TinyPlus { get; } = new Emoji(TextEmoji.TinyPlus);
+		public static IEmote Loop { get; } = new Emoji(TextEmoji.Loop);
+		public static IEmote GameDie { get; } = new Emoji(TextEmoji.GameDie);
 
 		public struct Guilds
 		{
@@ -45,9 +53,9 @@ namespace DiscordBot.Utilities
 				private static readonly SocketGuild guild = DataManager._client.GetGuild(456443419896709123);
 
 				public static IEmote Ban => GetEmote(553719355322531851, guild).Result ?? InvalidEmote;
-				public static IEmote Minus => GetEmote(553716950979575819, guild).Result ?? InvalidEmote;
-				public static IEmote Plus => GetEmote(553716932826890250, guild).Result ?? InvalidEmote;
-				public static IEmote Edit => GetEmote(553716553502163070, guild).Result ?? InvalidEmote;
+				public static IEmote Minus => GetEmote(553716950979575819, guild).Result ?? Stop ?? InvalidEmote;
+				public static IEmote Plus => GetEmote(553716932826890250, guild).Result ?? TinyPlus ?? InvalidEmote;
+				public static IEmote Edit => GetEmote(553716553502163070, guild).Result ?? Loop ?? InvalidEmote;
 			}
 
 			public static class Tests

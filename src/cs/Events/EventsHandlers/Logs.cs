@@ -436,7 +436,7 @@ namespace DiscordBot.Events.EventsHandlers
 		private async Task SendLogs(string eventName, string logs, IEmote logEmote = null)
 		{
 			string emote = (logEmote == null) ? string.Empty : logEmote.ToString() + " ";
-			string fullLogs = emote + "[" + eventName + "] (" + DateTime.Now.ToString() + ") " + logs;
+			string fullLogs = (emote + "[" + eventName + "] (" + DateTime.Now.ToString() + ") " + logs).Replace("@", "|@|");
 			fullLogs.Println();
 			await Channels.Logs.SendMessagesAsync(fullLogs);
 		}

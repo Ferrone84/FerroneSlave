@@ -89,9 +89,9 @@ namespace DiscordBot.Utilities
 
 							if (isVF) {
 								string scanValue = title + " => <" + link + ">";
-								string subs = String.Empty;
+								string subs = string.Empty;
 								var users = DataManager.database.getSubs(mangaName);
-								string msg = "Nouveau scan trouvé pour " + mangaName + " : \n\t" + scanValue;
+								string msg = "Nouveau scan trouvÃ© pour " + mangaName + " : \n\t" + scanValue;
 
 								foreach (var user in users) {
 									subs += "<@" + user + "> ";
@@ -110,7 +110,7 @@ namespace DiscordBot.Utilities
 				File.WriteAllText(DataManager.Text.MANGASDATA_RSS_FILE, data);
 			}
 			catch (Exception e) {
-				await Channels.Debug.SendMessageAsync("Le crawl des mangas a échoué, car la connexion au site a échouée.\n" + e);
+				await Channels.Debug.SendMessagesAsync("Le crawl des mangas a Ã©chouÃ©, car la connexion au site a Ã©chouÃ©e.\n" + e);
 				e.DisplayException(System.Reflection.MethodBase.GetCurrentMethod().ToString());
 			}
 

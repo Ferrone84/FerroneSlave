@@ -10,7 +10,7 @@ namespace DiscordBot.Events.EventsHandlers
 {
 	public class ActionsReactionAdded : IGuildMessageReactionAddedEventHandler
 	{
-		//TODO A terme implémentera le system d'Actions lié => dossier Reactions
+		//TODO A terme implÃ©mentera le system d'Actions liÃ© => dossier Reactions
 		public async Task Guild_Message_ReactionAdded(Cacheable<IUserMessage, ulong> cachedMessage, ISocketMessageChannel channel, SocketReaction reaction)
 		{
 			try {
@@ -37,7 +37,7 @@ namespace DiscordBot.Events.EventsHandlers
 						if (result == string.Empty) {
 							await message.RemoveAllReactionsAsync();
 							await message.AddReactionAsync(EmoteManager.Skull);
-							await Channels.Debugs.SendMessageAsync("Message n°" + reaction.MessageId + " deleted from musique database. (" + message.Content + ")");
+							await Channels.Debugs.SendMessageAsync("Message nÂ°" + reaction.MessageId + " deleted from musique database. (" + message.Content + ")");
 						}
 					}
 					else if (reaction.Emote.Equals(EmoteManager.Nsfw)) {

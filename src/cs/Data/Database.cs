@@ -310,7 +310,7 @@ namespace DiscordBot.Data
 			return "Table [" + table + "] : \n" + RunPython(DataManager.Python.QUERY_FILE, query).Replace(':', '\n');
 		}
 
-		private string makeQuery(string query, string values = "")
+		public string makeQuery(string query, string values = "")
 		{
 			return RunPython(DataManager.Python.QUERY_FILE, query.Replace(' ', ':'), values).Replace(':', '\n');
 		}

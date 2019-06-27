@@ -25,7 +25,7 @@ namespace DiscordBot.Actions.CommandActions
 				msg = DataManager.database.getPokemonInfo(pokemonName, DataManager.PokemonInfo.name, DataManager.PokemonInfo.rarityTier);
 			}
 			else {
-				msg = "This command can be use like this : " + Name + " Charizard";
+				msg = "This command can be used like this : " + Name + " Charizard";
 			}
 
 			await message.Channel.SendMessagesAsync(msg);

@@ -16,7 +16,7 @@ namespace DiscordBot.Actions.CommandActions
 		public override async Task Invoke(IUserMessage message)
 		{
 			try {
-				await Data.Channels.Debugs.SendMessageAsync("perorine");
+				
 			}
 			catch (System.Exception e) {
 				e.DisplayException(Name);

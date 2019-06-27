@@ -13,6 +13,7 @@ namespace DiscordBot.Data
 		public static IMessageChannel Debugs => DataManager._client.GetChannel(456443420378923010) as SocketTextChannel ?? Tests;
 		public static IMessageChannel Zone51 => DataManager._client.GetChannel(346760327540506643) as SocketTextChannel ?? Tests;
 		public static IMessageChannel Nsfw => DataManager._client.GetChannel(389537278671978497) as SocketTextChannel ?? Tests;
+		public static IMessageChannel Problems => DataManager._client.GetChannel(554978094117814272) as SocketTextChannel ?? Tests;
 		public static IMessageChannel Logs => DataManager._client.GetChannel(553882320856416256) as SocketTextChannel ?? Tests_Logs;
 
 		public static IMessageChannel Tests => DataManager._client.GetChannel(543925483650416650) as SocketTextChannel;

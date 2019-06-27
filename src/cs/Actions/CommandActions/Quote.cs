@@ -20,7 +20,7 @@ namespace DiscordBot.Actions.CommandActions
 		{
 			string message_lower = message.ToString().ToLower();
 			var args = message_lower.Split(' ');
-			string error_message = "This command can be use like this : " + Name + " message_id OR " + Name + " message_id reply.";
+			string error_message = "This command can be used like this : " + Name + " message_id OR " + Name + " message_id reply.";
 
 			if (args.Length < 2) {
 				await message.Channel.SendMessageAsync(error_message);

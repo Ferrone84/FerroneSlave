@@ -9,7 +9,7 @@ namespace DiscordBot.Actions.OtherActions
 		public Gamabunta() : base()
 		{
 			Name = Prefix + "gamabunta";
-			Regex = @"^(?=.*\bnaruto\b)(?=.*\bboss\b).*$|gamabunta";
+			Regex = @Utilities.RegexUtils.MatchAllWordsDisordered("naruto", "boss")+"|gamabunta";
 			Description = "Meme naruto du BOSS.";
 		}
 

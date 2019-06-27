@@ -22,7 +22,7 @@ namespace DiscordBot.Events.EventsHandlers
 			DataManager.baned_people = SaveStateManager.Load<List<ulong>>(DataManager.Binary.BANNED_FILE) ?? new List<ulong>();
 			DataManager.actions_used = SaveStateManager.Load<Dictionary<string, int>>(DataManager.Binary.POP_ACTIONS_FILE) ?? new Dictionary<string, int>();
 
-			//TODO déplacer ça dans la config
+			//TODO dÃ©placer Ã§a dans la config
 			ActionUtils.RegisterActions("DiscordBot.Actions.CommandActions");
 			ActionUtils.RegisterActions("DiscordBot.Actions.AdminActions");
 			ActionUtils.RegisterActions("DiscordBot.Actions.DeleteActions");
@@ -32,12 +32,18 @@ namespace DiscordBot.Events.EventsHandlers
 			Utils.Init();
 			DataManager.guild = DataManager._client.GetGuild(309407896070782976);
 
-			if (!Utils.IsTestBot) {
-				//Thread qui regarde les nouveaux scans
-				new Thread(ThreadUtils.MangasCrawlerOnLireScanV2).Start();
-			}
+			try {
+				if (!Utils.IsTestBot) {
+					//Thread qui regarde les nouveaux scans
+					new Thread(ThreadUtils.MangasCrawlerOnLireScanV2).Start();
+				}
 
-			new Thread(ThreadUtils.EmptyBannedPeopleStack).Start();
+				new Thread(ThreadUtils.EmptyBannedPeopleStack).Start();
+			}
+			catch (System.Exception e) {
+				e.DisplayException("Threads ready");
+				await Channels.Problems.SendMessagesAsync(e.Message);
+			}
 
 			await Channels.Debugs.SendMessageAsync("Bot ready");
 		}
