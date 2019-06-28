@@ -11,7 +11,6 @@ namespace DiscordBot.Actions.CommandActions
 		{
 			Name = Prefix + "dice";
 			Description = "Lance un dé.";
-			Accessibility = AccessibilityType.Usable;
 		}
 
 		public override async Task Invoke(IUserMessage message)
@@ -35,7 +34,7 @@ namespace DiscordBot.Actions.CommandActions
 			await message.Channel.SendMessageAsync("Vous avez obtenu un **" + roll(maxRoll) + "** " + Utilities.EmoteManager.GameDie + " !");
 		}
 
-		public int roll(int max = 100) {
+		private int roll(int max = 100) {
 			int roll = new System.Random().Next(max);
 			return (roll == 0) ? roll+1 : roll;
 		}
