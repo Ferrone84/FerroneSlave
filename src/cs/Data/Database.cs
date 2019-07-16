@@ -80,11 +80,13 @@ namespace DiscordBot.Data
 			return RunPython(DataManager.Python.QUERY_FILE, query, values).Replace(':', '\n');
 		}
 
-		public string addMusic(string title)
+		public string addMusic((string id, string url) link)
 		{
+			string id = makeQuery("SELECT id FROM musics WHERE title LIKE?", "'%"+link.id+"%'");
+			if (!id.Equals(String.Empty)) { throw new Exception("Youtube ID already in database."); }
+			
 			string query = "INSERT INTO musics (title) VALUES (?)".Replace(' ', ':');
-
-			return RunPython(DataManager.Python.QUERY_FILE, query, title.Replace(':', '/')).Replace(':', '\n');
+			return RunPython(DataManager.Python.QUERY_FILE, query, link.url.Replace(':', '/')).Replace(':', '\n');
 		}
 
 		public string removeMusic(string title)
@@ -154,7 +156,7 @@ namespace DiscordBot.Data
 				return "Tu n'es pas abonné à ce manga ! :)";
 
 			makeQuery("DELETE FROM subs WHERE user=? and manga=?", userId + ":" + mangaId);
-
+			
 			return "Vous vous êtes bien désabonné du manga '" + manga + "'.";
 		}
 
