@@ -11,11 +11,11 @@ namespace DiscordBot.Events.EventsHandlers
 		public async Task Guild_Message_Received(SocketUserMessage message)
 		{
 			if (message.Channel.Id == Channels.Musique.Id) {
-				string msg = string.Empty;
+				(string id, string url) link = message.Content.GetYoutubeLink();
 
-				if ((msg = message.Content.GetYtLink()) != string.Empty) {
+				if (link.url != string.Empty) {
 					try {
-						DataManager.database.addMusic(msg);
+						DataManager.database.addMusic(link);
 						await (message as SocketUserMessage).AddReactionAsync(EmoteManager.CheckMark);
 					}
 					catch (System.Exception) {
