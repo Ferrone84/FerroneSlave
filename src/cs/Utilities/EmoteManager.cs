@@ -12,6 +12,7 @@ namespace DiscordBot.Utilities
 			public const string Nsfw = @"🔞";
 			public const string CheckMark = @"✅";
 			public const string CrossMark = @"❌";
+			public const string NegativeCrossMark = @"❎";
 			public const string Skull = @"💀";
 			public const string Peach = @"🍑";
 			public const string Smirk = @"😏";
@@ -28,6 +29,7 @@ namespace DiscordBot.Utilities
 		public static IEmote Nsfw { get; } = new Emoji(TextEmoji.Nsfw);
 		public static IEmote CheckMark { get; } = new Emoji(TextEmoji.CheckMark);
 		public static IEmote CrossMark { get; } = new Emoji(TextEmoji.CrossMark);
+		public static IEmote NegativeCrossMark { get; } = new Emoji(TextEmoji.NegativeCrossMark);
 		public static IEmote Skull { get; } = new Emoji(TextEmoji.Skull);
 		public static IEmote Peach { get; } = new Emoji(TextEmoji.Peach);
 		public static IEmote Smirk { get; } = new Emoji(TextEmoji.Smirk);

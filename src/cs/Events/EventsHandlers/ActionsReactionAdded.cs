@@ -31,7 +31,7 @@ namespace DiscordBot.Events.EventsHandlers
 							ReactionUtils.RemoveNsfwMessage(message);
 						}
 					}
-					else if (channel.Id == Channels.Musique.Id && reaction.Emote.Equals(EmoteManager.CrossMark)) {
+					else if (channel.Id == Channels.Musique.Id && reaction.Emote.Equals(EmoteManager.NegativeCrossMark)) {
 						string result = DataManager.database.removeMusic(message.Content.GetYtLink());
 
 						if (result == string.Empty) {
