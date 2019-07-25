@@ -35,8 +35,7 @@ namespace DiscordBot.Actions.CommandActions
 		}
 
 		private int roll(int max = 100) {
-			int roll = new System.Random().Next(max);
-			return (roll == 0) ? roll+1 : roll;
+			return new System.Random().Next(max) + 1;
 		}
 	}
 }
