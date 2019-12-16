@@ -26,7 +26,7 @@ namespace DiscordBot.Actions.AdminActions
 				Data.DataManager.database.addUser(args[1], args[2], args[3]);
 			}
 			catch (System.Exception e) {
-				e.DisplayException(Name);
+				e.Display(Name);
 				await message.Channel.SendMessageAsync(errorMessage);
 			}
 		}

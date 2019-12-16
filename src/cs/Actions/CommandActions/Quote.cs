@@ -40,6 +40,7 @@ namespace DiscordBot.Actions.CommandActions
 					throw new ArgumentException("Le message '" + messageId + "' n'existe pas ou le bot n'y a pas accès.");
 				}
 
+				await message.DeleteAsync();
 				await message.Channel.SendMessageAsync("", false, msg.Quote(message.Author));
 
 				if (args.Length >= 3) {
@@ -53,13 +54,13 @@ namespace DiscordBot.Actions.CommandActions
 				await message.Channel.SendMessageAsync(e.Message);
 			}
 			catch (Discord.Net.HttpException e) {
-				e.DisplayException(Name);
+				e.Display(Name);
 				await message.Channel.SendMessageAsync("Le bot n'as pas accès au channel du message.");
 				await Channels.Debugs.SendMessageAsync(e.Message);
 			}
 			catch (Exception e) {
 				await message.Channel.SendMessageAsync(error_message);
-				e.DisplayException(Name);
+				e.Display(Name);
 			}
 		}
 	}

@@ -19,7 +19,7 @@ namespace DiscordBot.Actions.AdminActions
 				await message.Channel.SendMessageAsync("La bdd a bien été restaurée.");
 			}
 			catch (System.Exception e) {
-				e.DisplayException(Name);
+				e.Display(Name);
 				await message.Channel.SendMessagesAsync(e.Message);
 			}
 		}

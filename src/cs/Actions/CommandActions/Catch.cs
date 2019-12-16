@@ -51,7 +51,7 @@ namespace DiscordBot.Actions.CommandActions
 				await message.Channel.SendMessageAsync(e.Message);
 			}
 			catch (Exception e) {
-				e.DisplayException(Name);
+				e.Display(Name);
 				await message.Channel.SendMessagesAsync(result);
 			}
 		}

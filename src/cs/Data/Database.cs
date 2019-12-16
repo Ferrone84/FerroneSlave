@@ -50,7 +50,7 @@ namespace DiscordBot.Data
 						addUser(user.Id.ToString(), username, "a", admin);
 					}
 					catch (Exception e) {
-						e.DisplayException("Database adduser");
+						e.Display("Database adduser");
 					}
 				}
 			}
@@ -111,7 +111,7 @@ namespace DiscordBot.Data
 					return "Le manga '" + manga + "' n'existe pas :/";
 			}
 			catch (Exception e) {
-				e.DisplayException(System.Reflection.MethodBase.GetCurrentMethod().ToString());
+				e.Display(System.Reflection.MethodBase.GetCurrentMethod().ToString());
 				return "Le manga '" + manga + "' n'existe pas :/";
 			}
 
@@ -139,7 +139,7 @@ namespace DiscordBot.Data
 					return "Le manga '" + manga + "' n'existe pas :/";
 			}
 			catch (Exception e) {
-				e.DisplayException(System.Reflection.MethodBase.GetCurrentMethod().ToString());
+				e.Display(System.Reflection.MethodBase.GetCurrentMethod().ToString());
 				return "Le manga '" + manga + "' n'existe pas :/";
 			}
 
@@ -282,7 +282,7 @@ namespace DiscordBot.Data
 				return makeQuery("SELECT * FROM " + table + " WHERE id=?", id);
 			}
 			catch (Exception e) {
-				e.DisplayException(System.Reflection.MethodBase.GetCurrentMethod().ToString());
+				e.Display(System.Reflection.MethodBase.GetCurrentMethod().ToString());
 				return "";
 			}
 		}
@@ -293,7 +293,7 @@ namespace DiscordBot.Data
 				return makeQuery("SELECT " + column + " FROM " + table + " WHERE id=?", id);
 			}
 			catch (Exception e) {
-				e.DisplayException(System.Reflection.MethodBase.GetCurrentMethod().ToString());
+				e.Display(System.Reflection.MethodBase.GetCurrentMethod().ToString());
 				return "";
 			}
 		}

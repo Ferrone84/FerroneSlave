@@ -22,7 +22,7 @@ namespace DiscordBot.Actions.AdminActions
 				await (message.Channel as SocketTextChannel).DeleteMessagesAsync(messages);
 			}
 			catch (System.Exception e) {
-				e.DisplayException(Name);
+				e.Display(Name);
 				await message.Channel.SendMessageAsync("La commande doit être du type !!delete 10");
 			}
 		}

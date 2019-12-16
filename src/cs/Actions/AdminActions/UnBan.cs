@@ -29,7 +29,7 @@ namespace DiscordBot.Actions.AdminActions
 				Utilities.SaveStateManager.Save(DataManager.Binary.BANNED_FILE, DataManager.baned_people);
 			}
 			catch (System.Exception e) {
-				e.DisplayException(Name);
+				e.Display(Name);
 			}
 
 			await message.Channel.SendMessageAsync(msg);

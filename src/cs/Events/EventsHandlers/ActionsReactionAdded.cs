@@ -77,7 +77,7 @@ namespace DiscordBot.Events.EventsHandlers
 				}
 			}
 			catch (Exception e) {
-				e.DisplayException(System.Reflection.MethodBase.GetCurrentMethod().ToString());
+				e.Display(System.Reflection.MethodBase.GetCurrentMethod().ToString());
 			}
 		}
 	}

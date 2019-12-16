@@ -26,7 +26,7 @@ namespace DiscordBot.Actions.CommandActions
 				}
 			}
 			catch (System.Exception e) {
-				e.DisplayException(Name);
+				e.Display(Name);
 				result = new StringBuilder(e.Message);
 			}
 			await message.Channel.SendMessagesAsync(result.ToString(), "\n\n");

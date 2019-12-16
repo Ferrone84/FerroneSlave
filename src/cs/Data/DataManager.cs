@@ -23,9 +23,9 @@ namespace DiscordBot.Data
 			public static string INIT_TABLES_FILE = $@"{PYTHON_DIR}init_tables.py";
 
 			//Must remain full path
-			public static string PYTHON_EXE = @"C:\Users\utilisateur\AppData\Local\Programs\Python\Python37\python.exe";
+			public static string PYTHON_EXE = @"C:\Users\nicod\AppData\Local\Programs\Python\Python38-32\python.exe";
 		}
-
+		
 		public struct Binary
 		{
 			public static string DB_FILE = $@"{BIN_DIR}bdd.db";

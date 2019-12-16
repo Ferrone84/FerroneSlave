@@ -29,7 +29,7 @@ namespace DiscordBot
 			try {
 				eventHandlersManager.AddHandlers(GetAllEventsHandlers("DiscordBot.Events.EventsHandlers").ToArray());
 			}
-			catch (Exception e) { e.DisplayException("MainAsync() => EventHandlersManager.AddHandlers"); }
+			catch (Exception e) { e.Display("MainAsync() => EventHandlersManager.AddHandlers"); }
 
 			DataManager.delay_controller = new CancellationTokenSource();
 			await DataManager._client.LoginAsync(TokenType.Bot, Utils.Token);
@@ -61,7 +61,7 @@ namespace DiscordBot
 				Environment.Exit(0);
 			}
 			catch (Exception e) {
-				e.DisplayException(MethodBase.GetCurrentMethod().ToString());
+				e.Display(MethodBase.GetCurrentMethod().ToString());
 			}
 		}
 
@@ -85,7 +85,7 @@ namespace DiscordBot
 				}
 			}
 			catch (Exception e) {
-				e.DisplayException(MethodBase.GetCurrentMethod().ToString());
+				e.Display(MethodBase.GetCurrentMethod().ToString());
 			}
 			return eventsHandlers;
 		}

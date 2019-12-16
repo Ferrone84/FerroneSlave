@@ -29,7 +29,7 @@ namespace DiscordBot.Actions.DeleteActions
 
 			}
 			catch (Exception e) {
-				e.DisplayException(Name);
+				e.Display(Name);
 			}
 
 			result = result.RemoveChars(new List<char>() { '(', '\'', ')', ',' }).Replace("///", "://");

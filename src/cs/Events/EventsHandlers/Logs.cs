@@ -29,7 +29,7 @@ namespace DiscordBot.Events.EventsHandlers
 				await SendLogs("DM_Message_Deleted", messageInfos, EmoteManager.Guilds.Prod.Minus);
 			}
 			catch (Exception e) {
-				e.DisplayException();
+				e.Display();
 			}
 		}
 
@@ -200,7 +200,7 @@ namespace DiscordBot.Events.EventsHandlers
 				await SendLogs("Guild_Message_Deleted", messageInfos, EmoteManager.Guilds.Prod.Minus);
 			}
 			catch (Exception e) {
-				e.DisplayException();
+				e.Display();
 			}
 		}
 

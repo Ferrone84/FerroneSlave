@@ -1,6 +1,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Threading.Tasks;
 using Discord;
 using DiscordBot.Data;
@@ -18,10 +19,44 @@ namespace DiscordBot.Actions.CommandActions
 
 		public override async Task Invoke(IUserMessage message)
 		{
-			await message.Channel.SendMessageAsync(AddMangaMethod(message));
+			await message.Channel.SendMessageAsync(AddMangaJapscan(message));
 		}
 
-		private string AddMangaMethod(IUserMessage message)
+		private string AddMangaJapscan(IUserMessage message)
+		{
+			string msg = string.Empty;
+			try {
+				string manga = message.Content.ToLower().Split(' ')[1];
+
+				if (DataManager.mangasData.ContainsKey(manga)) {
+					return "Ce manga est déjà dans la liste poto ! :)";
+				}
+				
+				string site = "https://www.japscan.co/";
+				string link = site + "lecture-en-ligne/" + manga + "/";
+
+				string crawlerResult = new Crawler.Crawler(link).CrawlCloudFlare();
+
+				//Si on arrive ici sans exception c'est que c'est bon
+				string result = "\n" + manga;
+				System.IO.File.AppendAllText(DataManager.Text.MANGASDATA_FILE, result);
+				DataManager.mangasData = Utils.InitMangasData();
+
+				DataManager.database.addManga(manga);
+				msg = "Manga '" + manga + "' ajouté à la liste.";
+			}
+			catch (Exception e) {
+				if (e is ArgumentOutOfRangeException || e is WebException) {
+					msg = "Ce manga n'existe pas ou le site ne le possède pas. Le nom doit être de la forme : one-piece (minuscules séparées par un tiret)";
+				}
+				else {
+					msg = "La commande est mal écrite. Elle doit être de la forme : !addmanga one-piece";
+				}
+			}
+			return msg;
+		}
+
+		private string AddMangaLireScan(IUserMessage message)
 		{
 			string msg = string.Empty;
 			try {
@@ -40,7 +75,7 @@ namespace DiscordBot.Actions.CommandActions
 				catch (Exception) {
 					return "Timeout on : <" + link + ">";
 				}
-				
+
 				string documentString = document.ToString().RemoveChars(new List<char>() { '\n', ' ' }).Replace("<html><head></head><body></body></html>", "");
 				if (documentString == string.Empty) {
 					throw new ArgumentOutOfRangeException();
