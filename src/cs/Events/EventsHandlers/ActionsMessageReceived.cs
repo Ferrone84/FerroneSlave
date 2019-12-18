@@ -24,10 +24,6 @@ namespace DiscordBot.Events.EventsHandlers
 				string commandName = message_lower.Split(' ')[0];
 				Actions.Action action = DataManager.actions.GetValueOrDefault(commandName);
 
-				//message_lower.Debug();
-				//action?.Name?.Debug();
-				//DataManager.actions.Debug();
-
 				if (action?.CheckChannelAccessibility(message) == false) {
 					await message.Channel.SendMessageAsync("Commande non accessible d'ici.");
 					return;
@@ -56,10 +52,8 @@ namespace DiscordBot.Events.EventsHandlers
 
 				if (action == null) {
 					foreach (var action_ in DataManager.otherActions) {
-						(message_lower+"/==/"+action_.Name).Debug();
 						Regex regex = new Regex(action_.Regex);
 						if (regex.Match(message_lower).Success) {
-							"***************Success***************".Debug();
 							action_.Use(message);
 						}
 					}

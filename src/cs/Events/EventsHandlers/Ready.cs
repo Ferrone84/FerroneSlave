@@ -35,12 +35,11 @@ namespace DiscordBot.Events.EventsHandlers
 			try {
 				if (!Utils.IsTestBot) {
 					//Thread qui regarde les nouveaux scans
-					//new Thread(ThreadUtils.MangasCrawlerJapscan).Start();
+					new Thread(ThreadUtils.MangasCrawlerJapscan).Start();
 					new Thread(ThreadUtils.QwerteeThread).Start();
 				}
 
 				new Thread(ThreadUtils.EmptyBannedPeopleStackThread).Start();
-				new Thread(ThreadUtils.MangasCrawlerJapscan).Start();
 			}
 			catch (System.Exception e) {
 				e.Display("Threads ready");
