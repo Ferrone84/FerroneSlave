@@ -53,11 +53,11 @@ namespace DiscordBot
 			return result.ToArray();
 		}
 
-		public static string GetYtLink(this string message)
+		public static (string id, string url) GetYoutubeLink(this string message)
 		{
-			string pattern = @"(https?:\/\/)?(www\.|m\.)?youtu(be.com\/watch\/?\?v=|\.be\/)([-_A-Za-z0-9]+)";
+			string pattern = @"(https?:\/\/)?(www\.|m\.)?youtu(be.com\/watch\/?\?v=|\.be\/)(?<id>[-_A-Za-z0-9]+)";
 			Match match = new Regex(pattern).Match(message);
-			return (match.Success) ? match.Value : string.Empty;
+			return (match.Success ? (match.Groups["id"].Value, match.Value) : (string.Empty, string.Empty));
 		}
 
 		public static string Brackets(this string str)
